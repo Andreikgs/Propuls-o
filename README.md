@@ -16,6 +16,9 @@ Abra `Oval-Rush-Offline.html` em um navegador. Não precisa instalar dependênci
 ## Pilotagem e câmera
 Mapa de 4800 × 2880 unidades, quatro vezes maior em cada dimensão. Carro fixo no centro da câmera; minimapa mostra o circuito completo. A física inclui esterçamento progressivo, inércia lateral, limite de aderência em curvas, freios, grama com menor tração e colisão com o muro externo. As voltas exigem 16 setores em ordem. Os recordes desta física usam armazenamento separado da versão assistida.
 
+## Som
+Efeitos sintetizados com Web Audio: motor com variação de rotação e marchas virtuais, ruído de escapamento, frenagem e canto dos pneus ligado à derrapagem. Não dependem de arquivos externos. O som começa após interação do usuário. Botão de som durante a corrida; controle de volume na garagem. Preferências salvas neste navegador. Pausa, chegada, saída e aba em segundo plano silenciam o áudio.
+
 ## Modo online
 Aplicação Sites/Vinext com autenticação ChatGPT e banco D1. Login, criação de campeonatos por código, até 8 participantes, largada sincronizada, 3/5/8 etapas e classificação acumulada. Posições são enviadas a cada 350 ms e consultadas a cada 700 ms. Os carros online não possuem colisão física entre si nesta versão.
 

@@ -10,10 +10,10 @@
 <section id="offline" class="view hidden"><div class="titlebar"><div><div class="eyebrow">SINGLE PLAYER</div><h1>Seu treino. Seu ritmo.</h1><p class="muted">Uma corrida completa, mesmo sem internet.</p></div><span class="badge">OFFLINE READY</span></div><div class="panel"><h2>Escolha o circuito</h2><div class="tracks"><button class="track selected" data-track="0"><strong>01 / Oval Speedway</strong><small>Equilíbrio · 3 voltas</small></button><button class="track" data-track="1"><strong>02 / Sunset Ring</strong><small>Curvas fechadas · 3 voltas</small></button><button class="track" data-track="2"><strong>03 / Night Superspeedway</strong><small>Alta velocidade · 3 voltas</small></button></div><label for="difficulty">Dificuldade dos adversários</label><select id="difficulty"><option value="easy">Rookie — primeiro contato</option><option value="normal" selected>Pro — disputa equilibrada</option><option value="hard">Elite — cada segundo conta</option></select><div class="controls"><span><kbd>↑</kbd> / <kbd>W</kbd> Acelerar</span><span><kbd>←</kbd> <kbd>→</kbd> Esterçar</span><span><kbd>↓</kbd> Frear</span><span><kbd>P</kbd> Pausar</span></div><p class="note">Você faz todas as curvas. Reduza antes de entrar, esterçe com suavidade e acelere na saída. R reposiciona o carro com uma espera de 3 segundos.</p><div class="inline-actions"><button class="primary" id="startOffline">Iniciar corrida &nbsp; →</button><a class="small" href="/game.html" download="Oval-Rush-Offline.html" id="downloadOffline">↓ Baixar jogo offline</a></div></div></section>
 <section id="online" class="view hidden"><div class="titlebar"><div><div class="eyebrow">MULTIPLAYER</div><h1>O campeonato é de vocês.</h1><p class="muted">Largada sincronizada, carros compartilhados e pontos por etapa.</p></div></div><div id="onlineGuest" class="panel"><h2>Seu lugar no grid está esperando.</h2><p class="muted">Entre para criar um campeonato ou participar com um código.</p><button class="primary" data-page="login">Fazer login →</button></div><div id="onlineMember" class="hidden"><div class="grid"><form class="panel" id="createForm"><h2>Criar campeonato</h2><label for="cupName">Nome do campeonato</label><input id="cupName" maxlength="60" required placeholder="Ex.: Copa de sábado"><label for="rounds">Número de etapas</label><select id="rounds"><option value="3">3 etapas</option><option value="5">5 etapas</option><option value="8">8 etapas</option></select><p class="note">Até 8 pilotos. Cada etapa tem 3 voltas e limite de 10 minutos.</p><button class="primary">Criar campeonato ↗</button></form><form class="panel" id="joinForm"><h2>Entrar com código</h2><p class="muted">Recebeu um convite? Junte-se ao grid antes da primeira largada.</p><label for="invite">Código de convite</label><input id="invite" maxlength="10" required placeholder="XXXXXXXXXX" style="text-transform:uppercase"><button style="margin-top:24px">Entrar no campeonato →</button></form></div><div class="panel"><h2>Meus campeonatos</h2><div id="cupList"></div></div></div></section>
 <section id="room" class="view hidden"><div class="titlebar"><div><div class="eyebrow">PADDOCK ONLINE</div><h1 id="roomTitle">Campeonato</h1><p id="roomInfo" class="muted"></p></div><button class="small" data-page="online">← Campeonatos</button></div><div class="panel"><div class="inline-actions" style="justify-content:space-between"><div><div class="eyebrow">CONVIDE SEUS AMIGOS</div><p class="code" id="roomCode"></p></div><div class="inline-actions"><button id="copyCode">Copiar código</button><button class="primary" id="startOnline">Iniciar etapa →</button></div></div><p class="note" id="roomStatus"></p></div><div class="panel"><div class="section-head" style="margin-top:0"><h2>Classificação geral</h2><span id="playerCount"></span></div><div style="overflow:auto"><table><thead><tr><th>Pos.</th><th>Piloto</th><th>Pontos</th><th>Vitórias</th><th>Etapa atual</th></tr></thead><tbody id="ranking"></tbody></table></div><p class="note">Pontuação: 25 · 18 · 15 · 12 · 10 · 8 · 6 · 4. A ordem é definida pelo tempo de conclusão registrado no servidor. Abandonos não pontuam.</p></div></section>
-<section id="garage" class="view hidden"><div class="titlebar"><div><div class="eyebrow">MINHA GARAGEM</div><h1>Sua assinatura no asfalto.</h1></div></div><div class="grid"><div class="panel"><canvas id="carCanvas" class="car-preview" width="500" height="180"></canvas><p class="note">Stock car #27 · motor V8 · tração traseira</p></div><form class="panel" id="garageForm"><h2>Perfil do piloto</h2><label for="pilotName">Nome nas pistas</label><input id="pilotName" maxlength="24" required><label for="carColor">Cor da pintura</label><input type="color" id="carColor"><button class="primary" style="margin-top:24px">Salvar configuração</button><p class="note">A configuração vale para as próximas corridas e novos campeonatos.</p></form></div></section>
+<section id="garage" class="view hidden"><div class="titlebar"><div><div class="eyebrow">MINHA GARAGEM</div><h1>Sua assinatura no asfalto.</h1></div></div><div class="grid"><div class="panel"><canvas id="carCanvas" class="car-preview" width="500" height="180"></canvas><p class="note">Stock car #27 · motor V8 · tração traseira</p></div><form class="panel" id="garageForm"><h2>Perfil do piloto</h2><label for="pilotName">Nome nas pistas</label><input id="pilotName" maxlength="24" required><label for="soundVolume">Volume dos efeitos sonoros</label><input type="range" id="soundVolume" min="0" max="100" value="50" aria-label="Volume dos efeitos sonoros"><label for="carColor">Cor da pintura</label><input type="color" id="carColor"><button class="primary" style="margin-top:24px">Salvar configuração</button><p class="note">A configuração vale para as próximas corridas e novos campeonatos.</p></form></div></section>
 <section id="login" class="view hidden"><div class="panel login"><div class="logo"><i class="mark"></i>OVAL<em>RUSH</em></div><div class="eyebrow">BEM-VINDO AO PADDOCK</div><h2>Todo campeão<br>começa no grid.</h2><p class="muted">Entre para criar campeonatos, correr com amigos e acompanhar sua classificação.</p><a href="/signin-with-chatgpt?return_to=%2F" target="_top" class="primary">Entrar com ChatGPT &nbsp; ↗</a><button class="ghost" data-page="offline">Continuar no modo offline</button><p class="note">O modo offline não precisa de conta.</p></div></section>
 <footer class="page-foot"><span>OVAL RUSH © 2026 · JOGO INDEPENDENTE DE STOCK CAR</span><span>UM BOM TRAÇADO FAZ TODA A DIFERENÇA.</span></footer></div></main></div>
-<section id="raceScreen" class="race-screen hidden"><header class="race-head"><div class="logo"><i class="mark"></i>OVAL<em>RUSH</em></div><div class="race-stats"><div><small>POSIÇÃO</small><b id="hudPos">1 / 8</b></div><div><small>VOLTA</small><b id="hudLap">1 / 3</b></div><div><small>VELOCIDADE</small><b><span id="hudSpeed">0</span> <small style="display:inline;letter-spacing:0">KM/H</small></b></div><div><small>TEMPO</small><b id="hudTime">00:00</b></div></div><button class="small" id="pauseBtn">Ⅱ Pausar</button></header><div class="race-wrap"><canvas id="raceCanvas" width="1200" height="720" aria-label="Pista de corrida top-down"></canvas><div class="race-overlay" id="overlay"></div></div><footer class="race-bottom"><span class="help">↑ ACELERAR &nbsp; ← → ESTERÇAR &nbsp; ↓ FREAR &nbsp; P PAUSAR &nbsp; R REPOSICIONAR</span><span id="networkStatus">SINGLE PLAYER · IA</span><div class="touch"><button data-key="ArrowLeft" aria-label="Esquerda">←</button><button data-key="ArrowRight" aria-label="Direita">→</button><button data-key="ArrowDown" aria-label="Frear">↓</button><button data-key="ArrowUp" class="primary" aria-label="Acelerar">↑</button></div><button class="small ghost" id="recoverBtn" aria-label="Reposicionar carro">↺ Voltar à pista</button><button class="small ghost" id="exitRace">Sair ×</button></footer></section><div class="toast hidden" id="toast" role="status"></div>
+<section id="raceScreen" class="race-screen hidden"><header class="race-head"><div class="logo"><i class="mark"></i>OVAL<em>RUSH</em></div><div class="race-stats"><div><small>POSIÇÃO</small><b id="hudPos">1 / 8</b></div><div><small>VOLTA</small><b id="hudLap">1 / 3</b></div><div><small>VELOCIDADE</small><b><span id="hudSpeed">0</span> <small style="display:inline;letter-spacing:0">KM/H</small></b></div><div><small>TEMPO</small><b id="hudTime">00:00</b></div></div><button class="small ghost" id="soundBtn" type="button" aria-label="Silenciar som" aria-pressed="false">🔊</button><button class="small" id="pauseBtn">Ⅱ Pausar</button></header><div class="race-wrap"><canvas id="raceCanvas" width="1200" height="720" aria-label="Pista de corrida top-down"></canvas><div class="race-overlay" id="overlay"></div></div><footer class="race-bottom"><span class="help">↑ ACELERAR &nbsp; ← → ESTERÇAR &nbsp; ↓ FREAR &nbsp; P PAUSAR &nbsp; R REPOSICIONAR</span><span id="networkStatus">SINGLE PLAYER · IA</span><div class="touch"><button data-key="ArrowLeft" aria-label="Esquerda">←</button><button data-key="ArrowRight" aria-label="Direita">→</button><button data-key="ArrowDown" aria-label="Frear">↓</button><button data-key="ArrowUp" class="primary" aria-label="Acelerar">↑</button></div><button class="small ghost" id="recoverBtn" aria-label="Reposicionar carro">↺ Voltar à pista</button><button class="small ghost" id="exitRace">Sair ×</button></footer></section><div class="toast hidden" id="toast" role="status"></div>
 <script>
 'use strict';
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
@@ -97,7 +97,7 @@ function stepDriver(r,input,dt){
  const desired=(input.right?1:0)-(input.left?1:0);
  r.steer+=(desired-r.steer)*(1-Math.exp(-dt*(desired?7:5)));
  const c=Math.cos(r.angle),s=Math.sin(r.angle);
- let forward=r.vx*c+r.vy*s,lateral=-r.vx*s+r.vy*c;
+ let forward=r.vx*c+r.vy*s,lateral=-r.vx*s+r.vy*c;r.slip=Math.abs(lateral);
  const maxSpeed=r.offroad?85:330,accel=(input.throttle?(r.offroad?45:112):0)-(input.brake?230:0)-8-Math.max(0,forward)*.055;
  forward=clamp(forward+accel*dt,0,330);
  if(forward>maxSpeed)forward=Math.max(maxSpeed,forward-145*dt);
@@ -168,22 +168,96 @@ function renderRace(r){
  if(alert){g.fillStyle='#101813dc';g.fillRect(340,640,520,42);g.fillStyle='#eaff79';g.font='bold 15px Arial';g.textAlign='center';g.fillText(alert,600,667)}
 }
 
+
+function soundTelemetry(r,input){
+ const speed=Math.max(0,r.speed||0),throttle=!!input.throttle,braking=!!input.brake&&speed>12;
+ const gear=Math.min(5,1+Math.floor(speed/65)),rev=Math.min(1,(speed-(gear-1)*65)/65);
+ return {frequency:32+rev*94+(throttle?15:0),engine:.075+Math.min(speed/330,1)*.055+(throttle?.035:0),
+  exhaust:throttle?.045:.015,brake:braking?Math.min(speed/200,1)*.045:0,
+  skid:!r.offroad&&speed>45?Math.min(1,Math.max(0,((r.slip||0)-8)/27)+(braking?Math.max(0,speed-125)/230:0)):0};
+}
+const raceAudio={
+ ctx:null,nodes:null,muted:false,volume:.5,focused:true,unavailable:false,
+ init(){
+  if(this.ctx||this.unavailable)return;
+  const Audio=window.AudioContext||window.webkitAudioContext;
+  if(!Audio){this.unavailable=true;this.ui();return}
+  let ctx;
+  try{
+   ctx=new Audio();const master=ctx.createGain(),limiter=ctx.createDynamicsCompressor();
+   master.gain.value=0;limiter.threshold.value=-16;limiter.knee.value=18;limiter.ratio.value=6;
+   master.connect(limiter);limiter.connect(ctx.destination);
+   const gain=()=>{const n=ctx.createGain();n.gain.value=0;n.connect(master);return n};
+   const engine=gain(),bass=gain(),exhaust=gain(),brake=gain(),skid=gain(),squeal=gain();
+   const motor=ctx.createOscillator(),sub=ctx.createOscillator(),tire=ctx.createOscillator();
+   motor.type='sawtooth';sub.type='triangle';tire.type='sine';
+   motor.frequency.value=35;sub.frequency.value=17.5;tire.frequency.value=1100;
+   const low=ctx.createBiquadFilter();low.type='lowpass';low.frequency.value=650;low.Q.value=.8;
+   motor.connect(low);low.connect(engine);sub.connect(bass);tire.connect(squeal);
+   const buffer=ctx.createBuffer(1,ctx.sampleRate*2,ctx.sampleRate),data=buffer.getChannelData(0);
+   let seed=761;for(let i=0;i<data.length;i++){seed=(1664525*seed+1013904223)>>>0;data[i]=seed/2147483648-1}
+   const noise=ctx.createBufferSource();noise.buffer=buffer;noise.loop=true;
+   const rumble=ctx.createBiquadFilter();rumble.type='lowpass';rumble.frequency.value=240;
+   const friction=ctx.createBiquadFilter();friction.type='bandpass';friction.frequency.value=1600;friction.Q.value=.7;
+   const skidFilter=ctx.createBiquadFilter();skidFilter.type='bandpass';skidFilter.frequency.value=2900;skidFilter.Q.value=1.2;
+   noise.connect(rumble);rumble.connect(exhaust);noise.connect(friction);friction.connect(brake);noise.connect(skidFilter);skidFilter.connect(skid);
+   motor.start();sub.start();tire.start();noise.start();
+   this.ctx=ctx;this.nodes={master,engine,bass,exhaust,brake,skid,squeal,motor,sub,tire,low};
+  }catch{if(ctx)ctx.close().catch(()=>{});this.unavailable=true}
+  this.ui();
+ },
+ unlock(){
+  this.init();if(this.ctx&&this.ctx.state==='suspended')this.ctx.resume().then(()=>this.ui()).catch(()=>{});
+ },
+ param(param,value,time=.07){param.setTargetAtTime(value,this.ctx.currentTime,time)},
+ silence(){if(this.nodes)this.param(this.nodes.master.gain,0,.025)},
+ update(r,input){
+  if(!this.ctx||!this.nodes)return;
+  const active=r&&r.active&&!r.paused&&!r.done&&!r.recovery&&this.focused&&!document.hidden;
+  if(!active||this.muted){this.silence();return}
+  const s=soundTelemetry(r,input),n=this.nodes;
+  this.param(n.master.gain,this.volume*.7);this.param(n.motor.frequency,s.frequency,.09);this.param(n.sub.frequency,s.frequency*.5,.09);
+  this.param(n.low.frequency,500+s.frequency*5);
+  this.param(n.engine.gain,s.engine);this.param(n.bass.gain,s.engine*.65);this.param(n.exhaust.gain,s.exhaust);
+  this.param(n.brake.gain,s.brake,.035);this.param(n.skid.gain,s.skid*.10,.04);this.param(n.squeal.gain,s.skid*.025,.04);
+  this.param(n.tire.frequency,1000+Math.min(r.speed,330)*2+s.skid*180,.08);
+ },
+ ui(){
+  const b=$('#soundBtn');b.textContent=this.unavailable?'—':this.muted?'🔇':'🔊';
+  b.setAttribute('aria-pressed',String(this.muted));b.setAttribute('aria-label',this.unavailable?'Áudio indisponível neste navegador':this.muted?'Ativar som':'Silenciar som');
+  b.title=this.unavailable?'Áudio indisponível':this.muted?'Ativar som':'Silenciar som';b.disabled=this.unavailable;
+ },
+ save(){try{localStorage.setItem('oval-audio',JSON.stringify({muted:this.muted,volume:this.volume}))}catch{}},
+ toggle(){this.muted=!this.muted;if(!this.muted)this.unlock();else this.silence();this.save();this.ui()}
+};
+try{const settings=JSON.parse(localStorage.getItem('oval-audio')||'{}');raceAudio.muted=settings.muted===true;if(Number.isFinite(settings.volume))raceAudio.volume=Math.max(0,Math.min(1,settings.volume))}catch{}
+$('#soundBtn').onclick=()=>raceAudio.toggle();
+$('#soundVolume').value=String(Math.round(raceAudio.volume*100));
+$('#soundVolume').oninput=e=>{raceAudio.volume=Number(e.target.value)/100;raceAudio.save();if(!raceAudio.volume)raceAudio.silence()};
+window.addEventListener('pointerdown',()=>raceAudio.unlock(),{passive:true});
+window.addEventListener('keydown',()=>raceAudio.unlock());
+window.addEventListener('blur',()=>{raceAudio.focused=false;raceAudio.silence()});
+window.addEventListener('focus',()=>{raceAudio.focused=true});
+window.addEventListener('pagehide',()=>raceAudio.silence());
+document.addEventListener('visibilitychange',()=>{if(document.hidden)raceAudio.silence()});
+raceAudio.ui();
+
 function startRace(online=false){
- if(race&&race.active)return;keys={};const track=online?0:selectedTrack;
+ if(race&&race.active)return;raceAudio.unlock();keys={};const track=online?0:selectedTrack;
  race={...createDriver(track),active:true,online,elapsed:0,paused:false,done:false,start:online?performance.now()+room.cup.start-room.now:performance.now()+3500,remotes:[],bots:[],last:performance.now(),sent:0,pending:false,round:online?room.cup.round:0};
  if(!online){const level=$('#difficulty').value;for(let i=0;i<7;i++)race.bots.push({p:-(i+1)*.006,lane:(i%3-1)*65,speed:(level==='easy'?155:level==='hard'?246:205)+i*2,color:['#e46742','#4ea2cf','#e0e4d7','#9f77c9','#e8ad48','#579b7f','#c75667'][i],n:i+12})}
  buildWorld(track);$('#raceScreen').classList.remove('hidden');$('#pauseBtn').classList.toggle('hidden',online);$('#networkStatus').textContent=online?'ONLINE · CONECTANDO':'DIREÇÃO MANUAL · R PARA REPOSICIONAR';$('#overlay').classList.remove('hidden');requestAnimationFrame(frame);
 }
 $('#startOffline').onclick=()=>startRace();
-function togglePause(){if(!race||race.online||race.done||performance.now()<race.start)return;race.paused=!race.paused;keys={};if(race.paused){$('#overlay').innerHTML='<div class="panel"><div class="eyebrow">PIT STOP</div><h2>Corrida pausada</h2><p class="muted">Respire. O grid espera por você.</p><button class="primary" id="resume">Voltar para a pista →</button></div>';$('#overlay').classList.remove('hidden');$('#resume').onclick=togglePause}else $('#overlay').classList.add('hidden')}
+function togglePause(){if(!race||race.online||race.done||performance.now()<race.start)return;race.paused=!race.paused;keys={};if(race.paused)raceAudio.silence();else raceAudio.unlock();if(race.paused){$('#overlay').innerHTML='<div class="panel"><div class="eyebrow">PIT STOP</div><h2>Corrida pausada</h2><p class="muted">Respire. O grid espera por você.</p><button class="primary" id="resume">Voltar para a pista →</button></div>';$('#overlay').classList.remove('hidden');$('#resume').onclick=togglePause}else $('#overlay').classList.add('hidden')}
 $('#pauseBtn').onclick=togglePause;$('#recoverBtn').onclick=()=>{if(race)recoverDriver(race)};
-function leaveRace(){if(race)race.active=false;race=null;keys={};$('#raceScreen').classList.add('hidden');if(room&&view==='room')pollRoom();refreshStats()}
-$('#exitRace').onclick=()=>{if(race&&!race.done){race.paused=!race.online;$('#overlay').classList.remove('hidden');$('#overlay').innerHTML='<div class="panel"><h2>Abandonar corrida?</h2><p class="muted">'+(race.online?'A etapa continua para os outros pilotos. Você ficará sem pontos.':'Seu progresso nesta corrida será perdido.')+'</p><div class="inline-actions"><button id="keepRace" class="primary">Continuar</button><button id="leaveNow">Abandonar</button></div></div>';$('#keepRace').onclick=()=>{race.paused=false;$('#overlay').classList.add('hidden')};$('#leaveNow').onclick=leaveRace}else leaveRace()};
+function leaveRace(){raceAudio.silence();if(race)race.active=false;race=null;keys={};$('#raceScreen').classList.add('hidden');if(room&&view==='room')pollRoom();refreshStats()}
+$('#exitRace').onclick=()=>{if(race&&!race.done){race.paused=!race.online;if(race.paused)raceAudio.silence();$('#overlay').classList.remove('hidden');$('#overlay').innerHTML='<div class="panel"><h2>Abandonar corrida?</h2><p class="muted">'+(race.online?'A etapa continua para os outros pilotos. Você ficará sem pontos.':'Seu progresso nesta corrida será perdido.')+'</p><div class="inline-actions"><button id="keepRace" class="primary">Continuar</button><button id="leaveNow">Abandonar</button></div></div>';$('#keepRace').onclick=()=>{race.paused=false;$('#overlay').classList.add('hidden')};$('#leaveNow').onclick=leaveRace}else leaveRace()};
 window.addEventListener('keydown',e=>{if(!race)return;if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key))e.preventDefault();keys[e.key.toLowerCase()]=true;if(e.key.toLowerCase()==='p'&&!e.repeat)togglePause();if(e.key.toLowerCase()==='r'&&!e.repeat)recoverDriver(race)});
 window.addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false);window.addEventListener('blur',()=>{keys={};if(race&&!race.online&&!race.paused&&!race.done)togglePause()});
 $$('[data-key]').forEach(b=>{b.onpointerdown=e=>{e.preventDefault();b.setPointerCapture(e.pointerId);keys[b.dataset.key.toLowerCase()]=true};b.onpointerup=b.onpointercancel=()=>keys[b.dataset.key.toLowerCase()]=false});
 async function sendState(force=false){const r=race;if(!r||!r.online||!room||performance.now()<r.start)return;if(r.pending){if(force)r.retry=true;return}r.pending=true;try{const pos={x:r.x,y:r.y,angle:r.angle};await action({action:'state',cup:room.cup.id,round:r.round,...pos,progress:Math.min(3,r.p)});if(force){toast('Resultado registrado no campeonato.');const back=$('#finishBack');if(back){back.disabled=false;back.textContent='Ver classificação →'}}}catch(e){$('#networkStatus').textContent='FALHA DE SINCRONIZAÇÃO';if(force){toast('Resultado ainda não confirmado. Tentando novamente…');r.retry=true}}finally{r.pending=false}}
-function finish(){const r=race;r.done=true;r.speed=0;keys={};const place=r.online?null:1+r.bots.filter(b=>b.p>r.p).length;if(!r.online){stats.count++;if(!stats.best||r.elapsed<stats.best)stats.best=r.elapsed;save()}else{sendState(true)}
+function finish(){raceAudio.silence();const r=race;r.done=true;r.speed=0;keys={};const place=r.online?null:1+r.bots.filter(b=>b.p>r.p).length;if(!r.online){stats.count++;if(!stats.best||r.elapsed<stats.best)stats.best=r.elapsed;save()}else{sendState(true)}
 $('#overlay').classList.remove('hidden');$('#overlay').innerHTML='<div class="panel"><div class="eyebrow">BANDEIRA QUADRICULADA</div><h2>'+ (r.online?'Etapa concluída!':place===1?'O topo é seu.':place+'º lugar no grid.')+'</h2><p class="muted">Tempo total <b class="win">'+fmt(r.elapsed)+'</b></p><p class="note">'+(r.online?'Os pontos serão atualizados após a chegada dos outros pilotos.':'Cada volta é uma nova chance de ir além.')+'</p><button class="primary" id="finishBack">'+(r.online?'Ver classificação →':'Voltar ao paddock →')+'</button></div>';$('#finishBack').onclick=leaveRace;if(r.online){$('#finishBack').disabled=true;$('#finishBack').textContent='Registrando resultado…'}}
 
 function frame(now){
@@ -206,6 +280,7 @@ function frame(now){
   if(r.online&&now-r.start>600000&&!r.done){r.done=true;$('#overlay').classList.remove('hidden');$('#overlay').innerHTML='<div class="panel"><h2>Tempo encerrado</h2><p class="muted">A etapa terminou. Esta corrida não pontuou.</p><button id="timeoutBack" class="primary">Ver classificação</button></div>';$('#timeoutBack').onclick=leaveRace}
  }
  if(r.retry&&!r.pending&&now-r.sent>1500){r.sent=now;r.retry=false;sendState(true)}
+ raceAudio.update(r,{throttle:keys.arrowup||keys.w,brake:keys.arrowdown||keys.s});
  renderRace(r);
  const ahead=r.online?r.remotes.filter(b=>b.progress>r.p).length:r.bots.filter(b=>b.p>r.p).length;
  $('#hudPos').textContent=(ahead+1)+' / '+(r.online?(room?.players.length||1):8);$('#hudLap').textContent=Math.min(3,Math.floor(r.p)+1)+' / 3';$('#hudSpeed').textContent=Math.round(r.speed*1.05);$('#hudTime').textContent=fmt(r.elapsed);requestAnimationFrame(frame);
