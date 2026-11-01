@@ -42,8 +42,8 @@ for(let i=0;i<20;i++){resolveCarCollision(ram,edge);containCar(edge);containCar(
 if(trackInfo(edge.x,edge.y,2).distance+bodyRadius(edge,{x:0,y:1})>152.1)throw Error('Pushed through wall');
 startRace();race.start=0;
 for(let i=0;i<240;i++)stepRacePhysics(race,{throttle:true},1/120);
-if(race.bots.length!==7)throw Error('Missing AI field');
+if(race.bots.length!==14)throw Error('Missing AI field');
 for(const b of [race,...race.bots])if(![b.x,b.y,b.vx,b.vy,b.angle,b.p].every(Number.isFinite))throw Error('Invalid full-grid state');
 if(race.bots.some(b=>b.speed<20))throw Error('AI does not accelerate from grid');
 `);
-console.log('PASS: pushing against wall, hull containment and full eight-car starting grid.');
+console.log('PASS: pushing against wall, hull containment and full fifteen-car starting grid.');

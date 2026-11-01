@@ -13,14 +13,14 @@ run('var heading=right.angle;for(let i=0;i<120;i++)stepDriver(right,{throttle:tr
 run('var braking=createDriver();braking.vx=180;for(let i=0;i<240;i++)stepDriver(braking,{brake:true},1/120)');assert.ok(run('braking.speed')<1e-6);
 run('var grass=createDriver();Object.assign(grass,position(0,-350));grass.vx=250;for(let i=0;i<240;i++)stepDriver(grass,{throttle:true},1/120)');assert.ok(run('grass.speed')<=86);assert.ok(run('grass.offroad'));
 run('var wall=createDriver();Object.assign(wall,position(.25,149));wall.vx=300;for(let i=0;i<20;i++)stepDriver(wall,{throttle:true},1/120)');assert.ok(run('trackInfo(wall.x,wall.y).distance')<153);
-run('var checkpoint=createDriver();for(let i=1;i<=4800;i++){Object.assign(checkpoint,position(i/1600));updateProgress(checkpoint)}');
-assert.equal(run('checkpoint.gates'),48);assert.equal(run('checkpoint.p'),3);
+run('var checkpoint=createDriver();for(let i=1;i<=16000;i++){Object.assign(checkpoint,position(i/1600));updateProgress(checkpoint)}');
+assert.equal(run('checkpoint.gates'),160);assert.equal(run('checkpoint.p'),10);
 run('var shortcut=createDriver();for(let i=1;i<=1600;i++){Object.assign(shortcut,position(i/1600,-350));updateProgress(shortcut)}');assert.equal(run('shortcut.gates'),0);
 run('var reverse=createDriver();for(let i=1;i<=1600;i++){Object.assign(reverse,position(-i/1600));updateProgress(reverse)}');assert.equal(run('reverse.gates'),0);
 run('var skip=createDriver();Object.assign(skip,position(.4));updateProgress(skip)');assert.equal(run('skip.gates'),0);
 run('var camera=cameraFor(driver)');assert.equal(run('driver.x-camera.x'),600);assert.equal(run('driver.y-camera.y'),360);
 run('checkpoint.done=false;checkpoint.start=0;checkpoint.gates=19;recoverDriver(checkpoint)');assert.equal(run('checkpoint.p'),19/16);assert.equal(run('checkpoint.recovery'),3);
-run('startRace();race.bots=[];race.start=0;keys.arrowup=true');for(let i=0;i<20;i++){now+=50;run('frame('+now+')')}const before=run('race.x');run('togglePause()');now+=1000;run('frame('+now+')');assert.equal(run('race.x'),before);run('togglePause();race.gates=48;race.p=3;race.elapsed=150000;finish()');assert.equal(run('race.done'),true);assert.equal(run('stats.count'),1);
+run('startRace();race.bots=[];race.start=0;keys.arrowup=true');for(let i=0;i<20;i++){now+=50;run('frame('+now+')')}const before=run('race.x');run('togglePause()');now+=1000;run('frame('+now+')');assert.equal(run('race.x'),before);run('togglePause();race.gates=160;race.p=10;race.elapsed=600000;finish()');assert.equal(run('race.done'),true);assert.equal(run('stats.count'),1);
 assert.equal(fs.readFileSync(path.join(root,'Oval-Rush-Offline.html'),'utf8'),html,'Offline export matches hosted game');
 console.log('PASS: manual steering, inertia, brakes, offroad, barrier, sequential lap gates, wrong-way, shortcuts, centered camera, recovery, pause and finish.');
 
@@ -50,8 +50,8 @@ run(`for(const track of [0,1,2]){
  if(error*mesh.total>3||Math.abs(info.distance-lane)>.3)throw Error('Geometry projection mismatch '+track);
  if(p.x<220||p.x>4580||p.y<220||p.y>2660)throw Error('Track exceeds world bounds');
  }
- const d=createDriver(track);for(let i=1;i<=4800;i++){Object.assign(d,position(i/1600,0,track));updateProgress(d)}
- if(d.gates!==48||d.p!==3)throw Error('Three laps not recorded on '+track);
+ const d=createDriver(track);for(let i=1;i<=16000;i++){Object.assign(d,position(i/1600,0,track));updateProgress(d)}
+ if(d.gates!==160||d.p!==10)throw Error('Ten laps not recorded on '+track);
  const bad=createDriver(track);for(let i=1;i<=1600;i++){Object.assign(bad,position(i/1600,-300,track));updateProgress(bad)}
  if(bad.gates!==0)throw Error('Infield shortcut awarded progress');
  if(mesh.total/330<18)throw Error('Circuit violates server minimum lap time');
@@ -107,7 +107,9 @@ vm.runInNewContext(js,apiCtx);
 async function post(body){return apiExports.POST(new Request('https://game.test/api/race',{method:'POST',headers:{Origin:'https://game.test','Content-Type':'application/json'},body:JSON.stringify(body)}))}
 (async()=>{assert.equal((await post({action:'create'})).status,401);current={userId:'u1',email:'one@test',fullName:'Piloto 1'};let res=await post({action:'create',title:'Copa teste',rounds:3});const {id}=await res.json();assert.ok(id);assert.equal((await post({action:'start',cup:id})).status,409);
 current={userId:'u2',email:'two@test',fullName:'Piloto 2'};assert.equal((await post({action:'join',cup:id})).status,200);assert.equal((await post({action:'start',cup:id})).status,403);
-current={userId:'u1',email:'one@test'};assert.equal((await post({action:'start',cup:id})).status,200);clock+=8000;assert.equal((await post({action:'state',cup:id,round:1,x:2400,y:520,angle:0,progress:3})).status,400);clock+=65000;assert.equal((await post({action:'state',cup:id,round:1,x:2400,y:520,angle:0,progress:3})).status,200);assert.equal((await post({action:'state',cup:id,round:1,x:2400,y:520,angle:0,progress:3})).status,200);
-assert.equal(sql.prepare('SELECT count(*) n FROM results').get().n,1);const state=await (await apiExports.GET(new Request('https://game.test/api/race?cup='+id))).json();assert.equal(state.players.length,2);assert.equal(state.results.length,1);assert.equal((await post({action:'state',cup:id,round:1,x:5000,y:520,angle:0,progress:3})).status,400);
-current={userId:'u3',email:'three@test'};assert.equal((await apiExports.GET(new Request('https://game.test/api/race?cup='+id))).status,403);assert.equal((await post({action:'join',cup:id})).status,409);
+for(let i=3;i<=15;i++){current={userId:'u'+i,email:'pilot'+i+'@test'};assert.equal((await post({action:'join',cup:id})).status,200)}
+current={userId:'u16',email:'sixteen@test'};assert.equal((await post({action:'join',cup:id})).status,409);
+current={userId:'u1',email:'one@test'};assert.equal((await post({action:'start',cup:id})).status,200);clock+=8000;assert.equal((await post({action:'state',cup:id,round:1,x:2400,y:520,angle:0,progress:10})).status,400);clock+=65000;assert.equal((await post({action:'state',cup:id,round:1,x:2400,y:520,angle:0,progress:3})).status,200);assert.equal(sql.prepare('SELECT count(*) n FROM results').get().n,0);clock+=135000;assert.equal((await post({action:'state',cup:id,round:1,x:2400,y:520,angle:0,progress:10})).status,200);assert.equal((await post({action:'state',cup:id,round:1,x:2400,y:520,angle:0,progress:10})).status,200);
+assert.equal(sql.prepare('SELECT count(*) n FROM results').get().n,1);const state=await (await apiExports.GET(new Request('https://game.test/api/race?cup='+id))).json();assert.equal(state.players.length,15);assert.equal(state.results.length,1);assert.equal((await post({action:'state',cup:id,round:1,x:5000,y:520,angle:0,progress:10})).status,400);
+current={userId:'u16',email:'sixteen@test'};assert.equal((await apiExports.GET(new Request('https://game.test/api/race?cup='+id))).status,403);assert.equal((await post({action:'join',cup:id})).status,409);
 console.log('PASS: login obrigatório, criação, convite, autorização, largada, validação de tempo, resultado único e leitura de placar.');})().catch(e=>{console.error(e);process.exitCode=1});
