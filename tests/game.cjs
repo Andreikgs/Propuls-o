@@ -1,7 +1,7 @@
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict'),path=require('node:path');
 const root=path.resolve(process.argv[2]),html=fs.readFileSync(path.join(root,'public/game.html'),'utf8'),script=html.match(/<script>([\s\S]*)<\/script>/)[1];
 let now=0;const elements=new Map(),drawing=new Proxy({},{get:()=>()=>{}});function element(id){if(id==='#leaveNow')return null;if(!elements.has(id))elements.set(id,{id,style:{},dataset:{},value:id==='#difficulty'?'normal':'#dcff38',classList:{add(){},remove(){},toggle(){}},getContext:()=>drawing,innerHTML:'',textContent:'',setPointerCapture(){},setAttribute(){}});return elements.get(id)}
-const sandbox={console,document:{addEventListener(){},querySelector:element,querySelectorAll:()=>[],createElement:()=>({width:0,height:0,getContext:()=>drawing})},localStorage:{getItem:()=>null,setItem(){}},location:{protocol:'file:'},window:{addEventListener(){},scrollTo(){}},navigator:{},performance:{now:()=>now},requestAnimationFrame(){},setTimeout(){},clearTimeout(){},setInterval(){}};
+const sandbox={console,atob,document:{addEventListener(){},querySelector:element,querySelectorAll:()=>[],createElement:()=>({width:0,height:0,getContext:()=>drawing})},localStorage:{getItem:()=>null,setItem(){}},location:{protocol:'file:'},window:{addEventListener(){},scrollTo(){}},navigator:{},performance:{now:()=>now},requestAnimationFrame(){},setTimeout(){},clearTimeout(){},setInterval(){}};
 vm.createContext(sandbox);vm.runInContext(script,sandbox);const run=s=>vm.runInContext(s,sandbox);
 
 run('var driver=createDriver();for(let i=0;i<360;i++)stepDriver(driver,{throttle:true},1/120)');
@@ -38,7 +38,7 @@ run(`for(const track of [0,1,2]){
 console.log('PASS: full driven lap on all three circuits using only throttle, brake and steering inputs.');
 
 
-assert.ok(run('soundTelemetry({speed:40},{throttle:true}).frequency')>run('soundTelemetry({speed:0},{}).frequency'));
+assert.ok(run('soundTelemetry({speed:40},{throttle:true}).rate')>run('soundTelemetry({speed:0},{}).rate'));
 assert.equal(run('soundTelemetry({speed:0},{brake:true}).brake'),0);
 assert.ok(run('soundTelemetry({speed:200},{brake:true}).brake')>0);
 assert.equal(run('soundTelemetry({speed:200,slip:0},{}).skid'),0);
@@ -46,11 +46,11 @@ assert.ok(run('soundTelemetry({speed:200,slip:30},{}).skid')>0);
 assert.equal(run('soundTelemetry({speed:200,slip:30,offroad:true},{}).skid'),0);
 let contexts=0,starts=0;
 class Param{constructor(){this.value=0}setTargetAtTime(v){assert.ok(Number.isFinite(v));this.value=v}}
-class AudioNode{constructor(){for(const p of ['gain','frequency','Q','threshold','knee','ratio'])this[p]=new Param()}connect(){}start(){starts++}}
+class AudioNode{constructor(){for(const p of ['gain','frequency','playbackRate','Q','threshold','knee','ratio'])this[p]=new Param()}connect(){}start(){starts++}}
 class MockAudio{constructor(){contexts++;this.state='running';this.currentTime=0;this.sampleRate=8000;this.destination={}}createGain(){return new AudioNode()}createDynamicsCompressor(){return new AudioNode()}createOscillator(){return new AudioNode()}createBiquadFilter(){return new AudioNode()}createBufferSource(){return new AudioNode()}createBuffer(c,n){return{getChannelData:()=>new Float32Array(n)}}resume(){this.state='running';return Promise.resolve()}close(){return Promise.resolve()}}
 sandbox.window.AudioContext=MockAudio;
 run('raceAudio.unavailable=false;raceAudio.unlock();raceAudio.unlock()');
-assert.equal(contexts,1);assert.equal(starts,4);
+assert.equal(contexts,1);assert.equal(starts,3);
 run('var audioDriver={active:true,speed:200,slip:30};raceAudio.update(audioDriver,{throttle:true,brake:true})');
 assert.ok(run('raceAudio.nodes.master.gain.value')>0);assert.ok(run('raceAudio.nodes.brake.gain.value')>0);assert.ok(run('raceAudio.nodes.skid.gain.value')>0);
 run('raceAudio.toggle()');assert.equal(run('raceAudio.nodes.master.gain.value'),0);
@@ -60,6 +60,21 @@ run('audioDriver.done=true;raceAudio.update(audioDriver,{})');assert.equal(run('
 run('audioDriver.done=false;raceAudio.focused=false;raceAudio.update(audioDriver,{})');assert.equal(run('raceAudio.nodes.master.gain.value'),0);
 run('raceAudio.focused=true;raceAudio.update(audioDriver,{});leaveRace()');assert.equal(run('raceAudio.nodes.master.gain.value'),0);
 console.log('PASS: audio engine RPM, braking, tire slip, one reusable audio context, mute, pause, finish, background and exit.');
+
+
+const assets=JSON.parse(fs.readFileSync(path.join(root,'public/audio/samples.json'),'utf8'));
+assert.deepEqual(JSON.parse(run('JSON.stringify(RECORDED_SAMPLES)')),assets);
+for(const [name,sample] of Object.entries(assets)){
+ const pcm=Buffer.from(sample.pcm,'base64');assert.equal(pcm.length%2,0);assert.equal(sample.sampleRate,44100);
+ assert.ok(pcm.length/2/sample.sampleRate>.5);
+ let peak=0,energy=0;for(let i=0;i<pcm.length;i+=2){const v=pcm.readInt16LE(i)/32768;peak=Math.max(peak,Math.abs(v));energy+=v*v}
+ assert.ok(peak<=.851&&peak>.8);assert.ok(energy/(pcm.length/2)>.01);
+}
+assert.ok(!script.includes('createOscillator('),'Use recorded samples, not synthesized oscillators');
+assert.equal(fs.readFileSync(path.join(root,'Propulsao-Offline.html'),'utf8'),html);
+assert.ok(html.includes('PROPUL<em>SÃO</em>'));
+assert.ok(html.includes('Mike Koenig / SoundBible'));
+console.log('PASS: recorded PCM integrity, embedded offline samples, naming and audio attribution.');
 
 const {DatabaseSync}=require('node:sqlite'),sql=new DatabaseSync(':memory:');sql.exec(fs.readFileSync(path.join(root,'drizzle/0000_racing.sql'),'utf8'));
 const db={prepare(q){return{bind(...args){const st=sql.prepare(q);return{first:async()=>st.get(...args)||null,all:async()=>({results:st.all(...args)}),run:async()=>st.run(...args)}}}},batch:async jobs=>Promise.all(jobs.map(j=>j.run()))};

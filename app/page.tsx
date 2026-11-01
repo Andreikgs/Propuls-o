@@ -1,1 +1,1 @@
-export default function Home(){return <iframe title="Oval Rush — corrida" src="/game.html" style={{position:'fixed',inset:0,width:'100%',height:'100%',border:0}}/>}
+export default function Home(){return <iframe title="Propulsão — corrida" src="/game.html" style={{position:'fixed',inset:0,width:'100%',height:'100%',border:0}}/>}
