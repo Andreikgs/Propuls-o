@@ -12,3 +12,6 @@ Paleta aplicada a partir da referência fornecida:
 | White | #FEFEFE | Cartões, sinalização e contornos |
 
 Interface clara com painel principal laranja e navegação azul-escura. Ações laranja usam texto preto; áreas azuis usam texto claro. Cores personalizadas dos jogadores são preservadas. O antigo verde padrão é migrado para laranja. Transparências usam cores da própria paleta.
+
+## Modo escuro
+Fundo preto, painéis Dark Clouds e textos Open Skies/Gray Sky. Laranja preservado nas ações e destaques. Ativo por padrão; botão no topo alterna o tema e salva a preferência neste navegador.
