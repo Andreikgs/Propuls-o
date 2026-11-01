@@ -5,13 +5,13 @@ const sandbox={console,atob,document:{addEventListener(){},querySelector:element
 vm.createContext(sandbox);vm.runInContext(script,sandbox);const run=s=>vm.runInContext(s,sandbox);
 
 run('var driver=createDriver();for(let i=0;i<360;i++)stepDriver(driver,{throttle:true},1/120)');
-assert.ok(run('driver.x')>2400);assert.ok(Math.abs(run('driver.y')-520)<.001);assert.ok(Math.abs(run('driver.angle'))<.001,'No auto-steering');
-run('var parked=createDriver();for(let i=0;i<240;i++)stepDriver(parked,{right:true},1/120)');assert.ok(Math.abs(run('parked.angle'))<1e-10);
+assert.ok(run('driver.x')>run('position(0).x'));assert.ok(Math.abs(run('(driver.y-position(0).y)*Math.cos(position(0).angle)-(driver.x-position(0).x)*Math.sin(position(0).angle)'))<.001);assert.ok(Math.abs(run('driver.angle-position(0).angle'))<.001,'No auto-steering');
+run('var parked=createDriver();for(let i=0;i<240;i++)stepDriver(parked,{right:true},1/120)');assert.ok(Math.abs(run('parked.angle-position(0).angle'))<1e-10);
 run('var right=createDriver();var left=createDriver();for(let i=0;i<120;i++){stepDriver(right,{throttle:true,right:true},1/120);stepDriver(left,{throttle:true,left:true},1/120)}');
-assert.ok(run('right.angle')>0);assert.ok(run('left.angle')<0);assert.ok(run('right.y')>520);assert.ok(run('left.y')<520);
+assert.ok(run('right.angle-position(0).angle')>0);assert.ok(run('left.angle-position(0).angle')<0);assert.ok(run('right.y')>run('position(0).y'));assert.ok(run('left.y')<run('position(0).y'));
 run('var heading=right.angle;for(let i=0;i<120;i++)stepDriver(right,{throttle:true},1/120)');assert.ok(Math.abs(run('right.steer'))<.01);assert.ok(run('right.angle')>run('heading'),'Steering retains inertia');
 run('var braking=createDriver();braking.vx=180;for(let i=0;i<240;i++)stepDriver(braking,{brake:true},1/120)');assert.ok(run('braking.speed')<1e-6);
-run('var grass=createDriver();grass.y+=350;grass.vx=250;for(let i=0;i<240;i++)stepDriver(grass,{throttle:true},1/120)');assert.ok(run('grass.speed')<=86);assert.ok(run('grass.offroad'));
+run('var grass=createDriver();Object.assign(grass,position(0,350));grass.vx=250;for(let i=0;i<240;i++)stepDriver(grass,{throttle:true},1/120)');assert.ok(run('grass.speed')<=86);assert.ok(run('grass.offroad'));
 run('var wall=createDriver();Object.assign(wall,position(.25,149));wall.vx=300;for(let i=0;i<20;i++)stepDriver(wall,{throttle:true},1/120)');assert.ok(run('trackInfo(wall.x,wall.y).distance')<153);
 run('var checkpoint=createDriver();for(let i=1;i<=4800;i++){Object.assign(checkpoint,position(i/1600));updateProgress(checkpoint)}');
 assert.equal(run('checkpoint.gates'),48);assert.equal(run('checkpoint.p'),3);
@@ -37,6 +37,30 @@ run(`for(const track of [0,1,2]){
 }`);
 console.log('PASS: full driven lap on all three circuits using only throttle, brake and steering inputs.');
 
+
+
+run(`for(const track of [0,1,2]){
+ const mesh=trackMesh(track);let area=0;
+ for(let i=0;i<mesh.segments.length;i++){const s=mesh.segments[i];area+=s.x*(s.y+s.dy)-(s.x+s.dx)*s.y}
+ if(area>=0)throw Error('Track must run counterclockwise');
+ for(let i=0;i<160;i++)for(const lane of [-100,0,100]){
+ const p=position(i/160,lane,track),info=trackInfo(p.x,p.y,track);
+ let error=Math.abs(info.fraction-i/160);error=Math.min(error,1-error);
+ // Polyline normals can shift projection by up to 3 world pixels on the inside lane.
+ if(error*mesh.total>3||Math.abs(info.distance-lane)>.3)throw Error('Geometry projection mismatch '+track);
+ if(p.x<220||p.x>4580||p.y<220||p.y>2660)throw Error('Track exceeds world bounds');
+ }
+ const d=createDriver(track);for(let i=1;i<=4800;i++){Object.assign(d,position(i/1600,0,track));updateProgress(d)}
+ if(d.gates!==48||d.p!==3)throw Error('Three laps not recorded on '+track);
+ const bad=createDriver(track);for(let i=1;i<=1600;i++){Object.assign(bad,position(i/1600,-300,track));updateProgress(bad)}
+ if(bad.gates!==0)throw Error('Infield shortcut awarded progress');
+ if(mesh.total/330<18)throw Error('Circuit violates server minimum lap time');
+}
+if(!(trackMesh(1).total>trackMesh(0).total&&trackMesh(0).total>trackMesh(2).total))throw Error('Circuit length ordering');
+if(position(0,0,1).x<2700)throw Error('Talladega finish must be beyond trioval centre');
+for(let round=1;round<=8;round++)if(championshipTrack(round)!==(round-1)%3)throw Error('Championship schedule');
+`);
+console.log('PASS: all three track projections, CCW direction, world bounds, full races, shortcut rejection, Talladega finish and championship rotation.');
 
 assert.ok(run('soundTelemetry({speed:40},{throttle:true}).rate')>run('soundTelemetry({speed:0},{}).rate'));
 assert.equal(run('soundTelemetry({speed:0},{brake:true}).brake'),0);

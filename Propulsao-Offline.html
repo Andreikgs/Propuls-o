@@ -100,7 +100,7 @@ html[data-theme="dark"] :is(.hero p,.hero .eyebrow){color:var(--paper)}
 <div class="hero"><canvas id="heroCanvas" width="1200" height="500" aria-label="Ilustração aérea de uma pista oval"></canvas><div class="hero-copy"><div class="eyebrow">● &nbsp; A VELOCIDADE É SÓ O COMEÇO</div><h2>A próxima volta<br>é <em>sua.</em></h2><p>Encontre o traçado perfeito. Dispute cada posição. Cruze a linha primeiro.</p><button class="primary" id="heroPlay">Ir para a pista &nbsp; ↗</button></div><div class="hero-index">01 / OVAL SPEEDWAY<br><br><span style="color:#F5F3ED">3 VOLTAS · 8 CARROS · UM VENCEDOR</span></div></div>
 <div class="section-head"><h2>Escolha seu modo</h2><span>DA PRIMEIRA VOLTA AO PÓDIO</span></div><div class="modes"><article class="mode"><span class="icon">◉</span><span class="tag">SEM CONEXÃO. SEM LIMITES.</span><h3>Single player</h3><p>Domine as curvas e enfrente o grid de IA. Seu próximo recorde começa aqui.</p><footer><span>1 piloto + 7 adversários IA</span><button class="small primary" data-page="offline">Correr offline ↗</button></footer></article><article class="mode"><span class="icon">⚑</span><span class="tag">A DISPUTA É ENTRE AMIGOS.</span><h3>Campeonato online</h3><p>Crie seu campeonato, convide os pilotos e dispute o topo da classificação.</p><footer><span>2–8 pilotos · múltiplas etapas</span><button class="small" data-page="online">Entrar no grid ↗</button></footer></article></div>
 <div class="strip"><div><span class="eyebrow">SEU MELHOR TEMPO</span><b id="bestTime">— <small style="font-size:10px;color:#C0C3CF">FAÇA SUA PRIMEIRA CORRIDA</small></b></div><div><span class="eyebrow">CORRIDAS OFFLINE</span><b id="raceCount">00</b></div><div><span class="eyebrow">ESTILO DE PILOTAGEM</span><b>Direção manual <span style="color:var(--accent)">↗</span></b></div></div></section>
-<section id="offline" class="view hidden"><div class="titlebar"><div><div class="eyebrow">SINGLE PLAYER</div><h1>Seu treino. Seu ritmo.</h1><p class="muted">Uma corrida completa, mesmo sem internet.</p></div><span class="badge">OFFLINE READY</span></div><div class="panel"><h2>Escolha o circuito</h2><div class="tracks"><button class="track selected" data-track="0"><strong>01 / Oval Speedway</strong><small>Equilíbrio · 3 voltas</small></button><button class="track" data-track="1"><strong>02 / Sunset Ring</strong><small>Curvas fechadas · 3 voltas</small></button><button class="track" data-track="2"><strong>03 / Night Superspeedway</strong><small>Alta velocidade · 3 voltas</small></button></div><label for="difficulty">Dificuldade dos adversários</label><select id="difficulty"><option value="easy">Rookie — primeiro contato</option><option value="normal" selected>Pro — disputa equilibrada</option><option value="hard">Elite — cada segundo conta</option></select><div class="controls"><span><kbd>↑</kbd> / <kbd>W</kbd> Acelerar</span><span><kbd>←</kbd> <kbd>→</kbd> Esterçar</span><span><kbd>↓</kbd> Frear</span><span><kbd>P</kbd> Pausar</span></div><p class="note">Você faz todas as curvas. Reduza antes de entrar, esterçe com suavidade e acelere na saída. R reposiciona o carro com uma espera de 3 segundos.</p><div class="inline-actions"><button class="primary" id="startOffline">Iniciar corrida &nbsp; →</button><a class="small" href="/game.html" download="Propulsao-Offline.html" id="downloadOffline">↓ Baixar jogo offline</a></div></div></section>
+<section id="offline" class="view hidden"><div class="titlebar"><div><div class="eyebrow">SINGLE PLAYER</div><h1>Seu treino. Seu ritmo.</h1><p class="muted">Uma corrida completa, mesmo sem internet.</p></div><span class="badge">OFFLINE READY</span></div><div class="panel"><h2>Escolha o circuito</h2><div class="tracks"><button class="track selected" data-track="0"><strong>01 / Daytona</strong><small>Trioval · 2,5 mi reais · 3 voltas</small></button><button class="track" data-track="1"><strong>02 / Talladega</strong><small>Trioval · 2,66 mi reais · 3 voltas</small></button><button class="track" data-track="2"><strong>03 / Bristol</strong><small>Oval curto · 0,533 mi reais · 3 voltas</small></button></div><p class="note">Traçados adaptados dos circuitos reais à escala do jogo. Daytona e Talladega são triovais; Bristol é um oval curto de concreto. Todos em sentido anti-horário. No campeonato, as etapas alternam Daytona → Talladega → Bristol.</p><label for="difficulty">Dificuldade dos adversários</label><select id="difficulty"><option value="easy">Rookie — primeiro contato</option><option value="normal" selected>Pro — disputa equilibrada</option><option value="hard">Elite — cada segundo conta</option></select><div class="controls"><span><kbd>↑</kbd> / <kbd>W</kbd> Acelerar</span><span><kbd>←</kbd> <kbd>→</kbd> Esterçar</span><span><kbd>↓</kbd> Frear</span><span><kbd>P</kbd> Pausar</span></div><p class="note">Você faz todas as curvas. Reduza antes de entrar, esterçe com suavidade e acelere na saída. R reposiciona o carro com uma espera de 3 segundos.</p><div class="inline-actions"><button class="primary" id="startOffline">Iniciar corrida &nbsp; →</button><a class="small" href="/game.html" download="Propulsao-Offline.html" id="downloadOffline">↓ Baixar jogo offline</a></div></div></section>
 <section id="online" class="view hidden"><div class="titlebar"><div><div class="eyebrow">MULTIPLAYER</div><h1>O campeonato é de vocês.</h1><p class="muted">Largada sincronizada, carros compartilhados e pontos por etapa.</p></div></div><div id="onlineGuest" class="panel"><h2>Seu lugar no grid está esperando.</h2><p class="muted">Entre para criar um campeonato ou participar com um código.</p><button class="primary" data-page="login">Fazer login →</button></div><div id="onlineMember" class="hidden"><div class="grid"><form class="panel" id="createForm"><h2>Criar campeonato</h2><label for="cupName">Nome do campeonato</label><input id="cupName" maxlength="60" required placeholder="Ex.: Copa de sábado"><label for="rounds">Número de etapas</label><select id="rounds"><option value="3">3 etapas</option><option value="5">5 etapas</option><option value="8">8 etapas</option></select><p class="note">Até 8 pilotos. Cada etapa tem 3 voltas e limite de 10 minutos.</p><button class="primary">Criar campeonato ↗</button></form><form class="panel" id="joinForm"><h2>Entrar com código</h2><p class="muted">Recebeu um convite? Junte-se ao grid antes da primeira largada.</p><label for="invite">Código de convite</label><input id="invite" maxlength="10" required placeholder="XXXXXXXXXX" style="text-transform:uppercase"><button style="margin-top:24px">Entrar no campeonato →</button></form></div><div class="panel"><h2>Meus campeonatos</h2><div id="cupList"></div></div></div></section>
 <section id="room" class="view hidden"><div class="titlebar"><div><div class="eyebrow">PADDOCK ONLINE</div><h1 id="roomTitle">Campeonato</h1><p id="roomInfo" class="muted"></p></div><button class="small" data-page="online">← Campeonatos</button></div><div class="panel"><div class="inline-actions" style="justify-content:space-between"><div><div class="eyebrow">CONVIDE SEUS AMIGOS</div><p class="code" id="roomCode"></p></div><div class="inline-actions"><button id="copyCode">Copiar código</button><button class="primary" id="startOnline">Iniciar etapa →</button></div></div><p class="note" id="roomStatus"></p></div><div class="panel"><div class="section-head" style="margin-top:0"><h2>Classificação geral</h2><span id="playerCount"></span></div><div style="overflow:auto"><table><thead><tr><th>Pos.</th><th>Piloto</th><th>Pontos</th><th>Vitórias</th><th>Etapa atual</th></tr></thead><tbody id="ranking"></tbody></table></div><p class="note">Pontuação: 25 · 18 · 15 · 12 · 10 · 8 · 6 · 4. A ordem é definida pelo tempo de conclusão registrado no servidor. Abandonos não pontuam.</p></div></section>
 <section id="garage" class="view hidden"><div class="titlebar"><div><div class="eyebrow">MINHA GARAGEM</div><h1>Sua assinatura no asfalto.</h1></div></div><div class="grid"><div class="panel"><canvas id="carCanvas" class="car-preview" width="500" height="180"></canvas><p class="note">Stock car #27 · motor V8 · tração traseira</p></div><form class="panel" id="garageForm"><h2>Perfil do piloto</h2><label for="pilotName">Nome nas pistas</label><input id="pilotName" maxlength="24" required><label for="soundVolume">Volume dos efeitos sonoros</label><input type="range" id="soundVolume" min="0" max="100" value="50" aria-label="Volume dos efeitos sonoros"><label for="carColor">Cor da pintura</label><input type="color" id="carColor"><button class="primary" style="margin-top:24px">Salvar configuração</button><p class="note">A configuração vale para as próximas corridas e novos campeonatos.</p></form></div></section>
@@ -131,7 +131,7 @@ $('#createForm').onsubmit=async e=>{e.preventDefault();const b=e.submitter;b.dis
 $('#joinForm').onsubmit=async e=>{e.preventDefault();const b=e.submitter;b.disabled=true;try{const d=await action({action:'join',cup:$('#invite').value.trim().toUpperCase()});await openRoom(d.id)}catch(e){toast(e.message)}finally{b.disabled=false}};
 async function openRoom(id){try{room=await api(null,id);lastSeenRound=room.cup.round;if(room.cup.start>Date.now()&&room.cup.round>0)lastSeenRound--;renderRoom();page('room')}catch(e){toast(e.message)}}
 function standings(){let scores={};room.players.forEach(p=>scores[p.user]={...p,points:0,wins:0});for(let r=1;r<=room.cup.round;r++){room.results.filter(x=>x.round===r).sort((a,b)=>a.elapsed-b.elapsed).forEach((x,i)=>{if(scores[x.user]){scores[x.user].points+=[25,18,15,12,10,8,6,4][i]||0;if(i===0)scores[x.user].wins++}})}return Object.values(scores).sort((a,b)=>b.points-a.points||b.wins-a.wins||a.name.localeCompare(b.name))}
-function renderRoom(){const c=room.cup;$('#roomTitle').textContent=c.name;$('#roomInfo').textContent='Etapa '+c.round+' de '+c.rounds+' · Oval Speedway · 3 voltas';$('#roomCode').textContent=c.id;$('#playerCount').textContent=room.players.length+' / 8 PILOTOS';$('#startOnline').classList.toggle('hidden',!user||c.owner!==user.id);$('#startOnline').disabled=c.round>=c.rounds;$('#startOnline').textContent=c.round?'Próxima etapa →':'Iniciar etapa →';$('#roomStatus').textContent=c.round>=c.rounds?'Última etapa. A classificação se atualiza conforme os pilotos terminam.':c.round?'O organizador pode iniciar a próxima etapa após todos terminarem ou após 10 minutos.':'Compartilhe o código. O organizador inicia quando pelo menos dois pilotos entrarem.';$('#ranking').innerHTML=standings().map((p,i)=>{const r=room.results.find(x=>x.round===c.round&&x.user===p.user);return '<tr><td>'+String(i+1).padStart(2,'0')+'</td><td><span style="color:'+esc(p.color)+'">■</span> '+esc(p.name)+(user&&p.user===user.id?' <span class="note">(você)</span>':'')+'</td><td><b>'+p.points+'</b></td><td>'+p.wins+'</td><td>'+(r?fmt(r.elapsed):c.round?'Aguardando resultado':'No grid')+'</td></tr>'}).join('')}
+function renderRoom(){const c=room.cup;$('#roomTitle').textContent=c.name;$('#roomInfo').textContent='Etapa '+c.round+' de '+c.rounds+' · '+TRACKS[championshipTrack(c.round)].name+' · 3 voltas';$('#roomCode').textContent=c.id;$('#playerCount').textContent=room.players.length+' / 8 PILOTOS';$('#startOnline').classList.toggle('hidden',!user||c.owner!==user.id);$('#startOnline').disabled=c.round>=c.rounds;$('#startOnline').textContent=c.round?'Próxima etapa →':'Iniciar etapa →';$('#roomStatus').textContent=c.round>=c.rounds?'Última etapa. A classificação se atualiza conforme os pilotos terminam.':c.round?'O organizador pode iniciar a próxima etapa após todos terminarem ou após 10 minutos.':'Compartilhe o código. O organizador inicia quando pelo menos dois pilotos entrarem.';$('#ranking').innerHTML=standings().map((p,i)=>{const r=room.results.find(x=>x.round===c.round&&x.user===p.user);return '<tr><td>'+String(i+1).padStart(2,'0')+'</td><td><span style="color:'+esc(p.color)+'">■</span> '+esc(p.name)+(user&&p.user===user.id?' <span class="note">(você)</span>':'')+'</td><td><b>'+p.points+'</b></td><td>'+p.wins+'</td><td>'+(r?fmt(r.elapsed):c.round?'Aguardando resultado':'No grid')+'</td></tr>'}).join('')}
 $('#copyCode').onclick=async()=>{try{await navigator.clipboard.writeText(room.cup.id);toast('Código copiado!')}catch{toast('Código: '+room.cup.id)}};
 $('#startOnline').onclick=async()=>{try{await action({action:'start',cup:room.cup.id});await pollRoom()}catch(e){toast(e.message)}};
 async function pollRoom(){if(!room||polling||!(view==='room'||race&&race.online))return;polling=true;try{room=await api(null,room.cup.id);renderRoom();if(room.cup.round>lastSeenRound&&room.cup.start){lastSeenRound=room.cup.round;if(room.now<room.cup.start+2000)startRace(true)}if(race&&race.online){race.remotes=room.players.filter(p=>p.user!==user.id);$('#networkStatus').textContent='ONLINE · '+room.players.length+' PILOTOS'}}catch(e){if(race&&race.online)$('#networkStatus').textContent='RECONECTANDO…';}finally{polling=false}}
@@ -190,36 +190,64 @@ function car(ctx,x,y,a,color,n,scale=1,steering=0){
  ctx.restore();
 }
 function drawGarage(){const c=$('#carCanvas'),g=c.getContext('2d');g.clearRect(0,0,500,180);g.strokeStyle='#C0C3CF';for(let x=0;x<500;x+=25){g.beginPath();g.moveTo(x,0);g.lineTo(x,180);g.stroke()}car(g,250,90,0,$('#carColor').value,'27',4)}
-function previewRadii(track=0){return track===1?[400,220]:track===2?[475,240]:[450,230]}
-function previewPosition(p,lane,track=0){const [rx,ry]=previewRadii(track),a=-Math.PI/2+p*TAU;return {x:600+(rx+lane)*Math.cos(a),y:360+(ry+lane)*Math.sin(a),angle:Math.atan2((ry+lane)*Math.cos(a),-(rx+lane)*Math.sin(a))}}
-function circuit(g,track=0){const [rx,ry]=previewRadii(track);g.fillStyle=track===2?'#C0C3CF':track===1?'#F5F3ED':'#F5F3ED';g.fillRect(0,0,1200,720);g.fillStyle='#27384808';for(let y=0;y<720;y+=16)g.fillRect(0,y,1200,8);
-for(let i=0;i<80;i++){let x=(i*167)%1200,y=(i*97)%720;if(((x-600)/(rx+85))**2+((y-360)/(ry+85))**2>1){g.fillStyle='#27384833';g.beginPath();g.arc(x,y,7+(i%6),0,TAU);g.fill()}}
-g.strokeStyle='#273848';g.lineWidth=13;g.beginPath();g.ellipse(600,360,rx+68,ry+68,0,0,TAU);g.stroke();
-g.strokeStyle='#C0C3CF';g.lineWidth=5;g.beginPath();g.ellipse(600,360,rx+59,ry+59,0,0,TAU);g.stroke();
-g.strokeStyle='#FEFEFE';g.lineWidth=106;g.beginPath();g.ellipse(600,360,rx,ry,0,0,TAU);g.stroke();g.strokeStyle='#273848';g.lineWidth=98;g.stroke();
-g.lineWidth=3;g.strokeStyle='#FEFEFE';g.setLineDash([15,15]);g.beginPath();g.ellipse(600,360,rx-50,ry-50,0,0,TAU);g.stroke();g.strokeStyle='#F04718';g.lineDashOffset=15;g.stroke();g.setLineDash([]);g.lineDashOffset=0;
-g.strokeStyle='#C0C3CF80';g.lineWidth=1;g.setLineDash([15,20]);for(const l of [-17,17]){g.beginPath();g.ellipse(600,360,rx+l,ry+l,0,0,TAU);g.stroke()}g.setLineDash([]);
-for(let yy=360-ry-49;yy<360-ry+49;yy+=10)for(let xx=590;xx<610;xx+=10){g.fillStyle=(Math.floor((yy-(360-ry-49))/10)+Math.floor(xx/10))%2?'#000000':'#FEFEFE';g.fillRect(xx,yy,10,10)}
-g.fillStyle='#F5F3ED';g.beginPath();g.ellipse(600,360,rx-84,ry-84,0,0,TAU);g.fill();
-g.fillStyle='#27384833';g.textAlign='center';g.font='italic 900 56px Arial';g.fillText('PROPULSÃO',600,349);g.font='12px Arial';g.fillStyle='#27384899';g.fillText('S T O C K   C A R   R A C I N G',600,377);
-g.fillStyle='#C0C3CF';g.fillRect(410,435,380,18);for(let x=410;x<790;x+=42){g.fillStyle='#FEFEFE';g.fillRect(x,436,2,16)}
-for(let x=300;x<910;x+=9){g.fillStyle=['#273848','#C0C3CF','#F04718','#FEFEFE'][Math.floor(x/9)%4];g.fillRect(x,31,6,16);g.fillRect(x,673,6,16)}
-g.fillStyle='#273848';g.font='bold 10px Arial';g.fillText('OVAL SPEEDWAY     •     RACE TOGETHER     •     PROPULSÃO',600,23);
-}
+function previewPosition(p,lane,track=0){const q=position(p,lane*4,track);return{x:q.x/4,y:q.y/4,angle:q.angle}}
+function circuit(g,track=0){g.drawImage(buildWorld(track),0,0,1200,720)}
 function drawHero(){const g=$('#heroCanvas').getContext('2d');g.save();g.translate(380,-90);g.scale(.95,.95);circuit(g);for(let i=0;i<10;i++){const p=previewPosition(.12+i*.035,(i%3-1)*23);car(g,p.x,p.y,p.angle,['#F04718','#F04718','#FEFEFE','#C0C3CF'][i%4],i+11,1.4)}g.restore()}
 
 const WORLD={width:4800,height:2880,cx:2400,cy:1440,halfRoad:128};
 const wrap=n=>(n%1+1)%1,clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
-function radii(track=0){return track===1?[1540,940]:track===2?[1900,980]:[1800,920]}
+
+const TRACKS=[
+ {name:'Daytona',full:'Daytona International Speedway',miles:'2,5 mi',type:'Trioval · largada central',offset:0},
+ {name:'Talladega',full:'Talladega Superspeedway',miles:'2,66 mi',type:'Trioval · chegada após o arco',offset:.065},
+ {name:'Bristol',full:'Bristol Motor Speedway',miles:'0,533 mi',type:'Oval curto · concreto',offset:0}
+];
+const trackMeshes=new Map();
+// Hand-built plan-view adaptations of the official venue maps; game units are not real metres.
+// Cubic segments preserve long straights, connected turn tangents and the trioval frontstretch.
+function trackMesh(track=0){
+ if(trackMeshes.has(track))return trackMeshes.get(track);
+ let start,curves;
+ if(track===2){const k=303.7566;start=[0,550];curves=[
+ [[233,550],[466,550],[700,550]],
+ [[700+k,550],[1250,k],[1250,0]],
+ [[1250,-k],[700+k,-550],[700,-550]],
+ [[233,-550],[-233,-550],[-700,-550]],
+ [[-700-k,-550],[-1250,-k],[-1250,0]],
+ [[-1250,k],[-700-k,550],[-700,550]],
+ [[-466,550],[-233,550],[0,550]]
+ ];}else{
+ const wide=track===1?1.06:1,front=track===1?940:860,back=track===1?-760:-720;
+ start=[0,front];curves=[
+ [[300,front],[700,700],[1080,510]],
+ [[1480,310],[1780,260],[1780,-90]],
+ [[1780,-440],[1500,back],[1120,back]],
+ [[400,back],[-400,back],[-1120,back]],
+ [[-1500,back],[-1780,-440],[-1780,-90]],
+ [[-1780,260],[-1480,310],[-1080,510]],
+ [[-700,700],[-300,front],[0,front]]
+ ];start[0]*=wide;curves=curves.map(c=>c.map(p=>[p[0]*wide,p[1]]));
+ }
+ const points=[];let from=start;
+ for(const [b,c,d] of curves){for(let j=0;j<100;j++){const t=j/100,u=1-t;points.push({x:2400+u*u*u*from[0]+3*u*u*t*b[0]+3*u*t*t*c[0]+t*t*t*d[0],y:1440+u*u*u*from[1]+3*u*u*t*b[1]+3*u*t*t*c[1]+t*t*t*d[1]})}from=d}
+ let total=0;const segments=points.map((a,i)=>{const b=points[(i+1)%points.length],dx=b.x-a.x,dy=b.y-a.y,len=Math.hypot(dx,dy),seg={x:a.x,y:a.y,dx,dy,len,s:total,nx:-dy/len,ny:dx/len};total+=len;return seg});
+ const mesh={segments,total};trackMeshes.set(track,mesh);return mesh;
+}
 function position(p,lane=0,track=0){
- const [rx,ry]=radii(track),a=-Math.PI/2+p*TAU,c=Math.cos(a),s=Math.sin(a),length=Math.hypot(c/rx,s/ry);
- return {x:WORLD.cx+rx*c+lane*c/rx/length,y:WORLD.cy+ry*s+lane*s/ry/length,angle:Math.atan2(ry*c,-rx*s)};
+ const mesh=trackMesh(track),distance=wrap(p+TRACKS[track].offset)*mesh.total;
+ let lo=0,hi=mesh.segments.length-1;
+ while(lo<hi){const mid=(lo+hi+1)>>1;if(mesh.segments[mid].s<=distance)lo=mid;else hi=mid-1}
+ const s=mesh.segments[lo],t=(distance-s.s)/s.len;
+ return {x:s.x+s.dx*t+lane*s.nx,y:s.y+s.dy*t+lane*s.ny,angle:Math.atan2(s.dy,s.dx)};
 }
 function trackInfo(x,y,track=0){
- const [rx,ry]=radii(track),a=Math.atan2((y-WORLD.cy)/ry,(x-WORLD.cx)/rx),c=Math.cos(a),s=Math.sin(a);
- const qx=WORLD.cx+rx*c,qy=WORLD.cy+ry*s,length=Math.hypot(c/rx,s/ry),nx=c/rx/length,ny=s/ry/length;
- return {fraction:wrap((a+Math.PI/2)/TAU),distance:(x-qx)*nx+(y-qy)*ny,nx,ny};
+ const mesh=trackMesh(track);let best=Infinity,result;
+ for(const s of mesh.segments){const t=clamp(((x-s.x)*s.dx+(y-s.y)*s.dy)/(s.len*s.len),0,1),dx=x-s.x-t*s.dx,dy=y-s.y-t*s.dy,d2=dx*dx+dy*dy;
+ if(d2<best){best=d2;result={fraction:wrap((s.s+t*s.len)/mesh.total-TRACKS[track].offset),distance:Math.sqrt(d2)*(dx*s.nx+dy*s.ny<0?-1:1),nx:s.nx,ny:s.ny}}
+ }
+ return result;
 }
+function championshipTrack(round){return Math.max(0,round-1)%TRACKS.length}
 function createDriver(track=0){
  const pos=position(0,0,track);
  return {...pos,track,vx:0,vy:0,speed:0,steer:0,yaw:0,p:0,gates:0,prevFraction:0,offroad:false,wrongWay:false,recovery:0,skids:[]};
@@ -277,21 +305,21 @@ let mapCache=null,mapTrack=-1;
 function buildWorld(track){
  if(mapCache&&mapTrack===track)return mapCache;
  const canvas=document.createElement('canvas');canvas.width=WORLD.width;canvas.height=WORLD.height;
- const g=canvas.getContext('2d'),[rx,ry]=radii(track);
+ const g=canvas.getContext('2d');
  const path=(lane)=>{g.beginPath();for(let i=0;i<=900;i++){const p=position(i/900,lane,track);if(i)g.lineTo(p.x,p.y);else g.moveTo(p.x,p.y)}g.closePath()};
  const band=(lane,width,color)=>{path(lane);g.strokeStyle=color;g.lineWidth=width;g.stroke()};
  // Deterministic scenery is baked once, never regenerated in the animation loop.
  g.fillStyle=['#bec3b5','#c9bda8','#aebcc0'][track];g.fillRect(0,0,4800,2880);
  for(let y=0;y<2880;y+=110){g.fillStyle='#27384809';g.fillRect(0,y,4800,55)}
  for(let i=0;i<14000;i++){g.fillStyle=i%2?'#ffffff15':'#27384812';g.fillRect((i*431)%4800,(i*787)%2880,2+i%3,1)}
- for(let i=0;i<420;i++){const x=(i*397)%4800,y=(i*179)%2880;if(((x-2400)/(rx+300))**2+((y-1440)/(ry+300))**2>1){
+ for(let i=0;i<420;i++){const x=(i*397)%4800,y=(i*179)%2880;if(trackInfo(x,y,track).distance>350){
  g.fillStyle='#00000025';g.beginPath();g.ellipse(x+12,y+13,19,13,0,0,TAU);g.fill();
  for(let j=0;j<3;j++){g.fillStyle=['#46584f','#58695b','#71806a'][j];g.beginPath();g.arc(x+j*3,y-j*4,16-j*3+i%7,0,TAU);g.fill()}
  }}
  // Service verge, concrete safety walls, apron and orange/white rumble strips.
  band(0,440,'#27384822');band(0,420,'#a5aaa5');band(0,374,'#bfc3bd');
  band(0,334,'#273848');band(0,322,'#f5f3ed');band(0,306,'#7c8689');band(0,278,'#fefefe');
- g.setLineDash([28,28]);band(0,278,'#F04718');g.setLineDash([]);band(0,256,'#303c45');
+ g.setLineDash([28,28]);band(0,278,'#F04718');g.setLineDash([]);band(0,256,track===2?'#9b9d9b':'#303c45');
  // Asphalt aggregate and darker rubbered-in racing groove.
  g.save();path(128);path(0);g.lineWidth=252;g.strokeStyle='#ffffff05';g.stroke();
  for(let lane=-110;lane<=110;lane+=22){band(lane,1,'#00000012')}
@@ -302,11 +330,12 @@ function buildWorld(track){
  // Catch fencing outside the wall, with regular posts.
  band(181,1,'#27384866');band(191,1,'#27384866');
  for(let i=0;i<220;i++){const p=position(i/220,187,track);g.save();g.translate(p.x,p.y);g.rotate(p.angle);g.fillStyle='#27384866';g.fillRect(-1,-9,2,18);g.fillStyle='#00000020';g.fillRect(1,0,9,2);g.restore()}
- for(let y=1440-ry-128;y<1440-ry+128;y+=16)for(let x=2384;x<2416;x+=16){g.fillStyle=((x-2384)/16+Math.floor((y-(1440-ry-128))/16))%2?'#fefefe':'#10161b';g.fillRect(x,y,16,16)}
+ const start=position(0,0,track);g.save();g.translate(start.x,start.y);g.rotate(start.angle);
+ for(let y=-128;y<128;y+=16)for(let x=-16;x<16;x+=16){g.fillStyle=((y+128)/16+(x+16)/16)%2?'#fefefe':'#10161b';g.fillRect(x,y,16,16)}g.restore();
  for(let i=0;i<16;i++){const p=position(-.005*(i+1),(i%2?1:-1)*52,track);g.save();g.translate(p.x,p.y);g.rotate(p.angle);g.strokeStyle='#fefefe99';g.lineWidth=1.5;g.strokeRect(-31,-18,62,36);g.fillStyle='#fefefe99';g.font='12px Arial';g.fillText(String(i+1),-45,4);g.restore()}
  // Infield branding and a separate pit complex.
- g.fillStyle='#27384822';g.textAlign='center';g.font='italic 900 135px Arial';g.fillText('PROPULSÃO',2400,1350);g.font='24px Arial';g.fillText(['GRAND OVAL / SPEEDWAY','DESERT RING / MOTOR PARK','COASTAL CIRCUIT / RACEWAY'][track],2400,1400);
- g.fillStyle='#00000018';g.fillRect(1670,1660,1480,360);g.fillStyle='#737e83';g.fillRect(1660,1650,1480,350);
+ g.fillStyle='#27384822';g.textAlign='center';g.font='italic 900 110px Arial';g.fillText(TRACKS[track].name.toUpperCase(),2400,1290);g.font='24px Arial';g.fillText('PROPULSÃO / '+TRACKS[track].miles+' / SENTIDO ANTI-HORÁRIO',2400,1340);
+ g.save();g.translate(2400,1580);g.scale(track===2?.55:.8,track===2?.55:.8);g.translate(-2400,-1800);g.fillStyle='#00000018';g.fillRect(1670,1660,1480,360);g.fillStyle='#737e83';g.fillRect(1660,1650,1480,350);
  g.fillStyle='#35424a';g.fillRect(1690,1680,1420,105);g.strokeStyle='#f5f3ed';g.lineWidth=2;g.setLineDash([20,22]);g.beginPath();g.moveTo(1700,1732);g.lineTo(3100,1732);g.stroke();g.setLineDash([]);
  g.fillStyle='#f04718';g.fillRect(1690,1786,1420,5);
  for(let i=0;i<12;i++){const x=1710+i*115;
@@ -315,11 +344,13 @@ function buildWorld(track){
  g.fillStyle='#ffffff22';g.fillRect(x+8,1844,101,9);g.fillStyle='#27384844';for(let k=0;k<5;k++)g.fillRect(x+14,1865+k*13,89,1);
  g.fillStyle='#101820';g.fillRect(x+18,1834,80,10);g.fillStyle='#fefefe';g.font='bold 12px Arial';g.fillText(String(i+1).padStart(2,'0'),x+59,1824);
  }
+ g.restore();
  // Tiered grandstands: concrete aisles, seating and roof shadows.
- for(const y of [1440-ry-285,1440+ry+220]){
- g.fillStyle='#00000022';g.fillRect(1230,y+12,2350,110);g.fillStyle='#273848';g.fillRect(1220,y,2350,106);
- for(let row=0;row<5;row++){g.fillStyle='#c0c3cf55';g.fillRect(1230,y+row*20,2330,1);for(let x=1230;x<3550;x+=12){g.fillStyle=['#c0c3cf','#f04718','#f5f3ed','#778794'][(Math.floor(x/12)+row*3)%4];g.fillRect(x,y+row*20+5,8,8)}}
- for(let x=1260;x<3560;x+=230){g.fillStyle='#c0c3cf';g.fillRect(x,y,14,106);for(let step=0;step<10;step++){g.fillStyle='#27384866';g.fillRect(x,y+step*10,14,1)}}
+ for(let i=0;i<48;i++){
+ if(track!==2&&i>9&&i<37)continue;
+ const p=position(i/48,300,track);g.save();g.translate(p.x,p.y);g.rotate(p.angle);g.fillStyle='#00000022';g.fillRect(-94,-40,188,90);g.fillStyle='#273848';g.fillRect(-100,-48,188,90);
+ for(let row=0;row<4;row++)for(let col=0;col<15;col++){g.fillStyle=['#c0c3cf','#f04718','#f5f3ed'][(col+row)%3];g.fillRect(-94+col*12,-42+row*20,8,9)}
+ g.fillStyle='#c0c3cf';g.fillRect(81,-48,7,90);g.restore();
  }
  // Sponsor boards and braking-distance signs stay clear of the driving surface.
  for(let i=0;i<24;i++){const p=position(i/24,223,track);g.save();g.translate(p.x,p.y);g.rotate(p.angle);g.fillStyle=i%3?'#273848':'#F04718';g.fillRect(-48,-10,96,20);g.fillStyle=i%3?'#f5f3ed':'#000000';g.font='bold italic 10px Arial';g.fillText(i%3?'PROPULSÃO':'RACING',0,4);g.restore()}
@@ -421,7 +452,7 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden)raceAudio.s
 raceAudio.ui();
 
 function startRace(online=false){
- if(race&&race.active)return;raceAudio.unlock();keys={};const track=online?0:selectedTrack;
+ if(race&&race.active)return;raceAudio.unlock();keys={};const track=online?championshipTrack(room.cup.round):selectedTrack;
  race={...createDriver(track),active:true,online,elapsed:0,paused:false,done:false,start:online?performance.now()+room.cup.start-room.now:performance.now()+3500,remotes:[],bots:[],last:performance.now(),sent:0,pending:false,round:online?room.cup.round:0};
  if(!online){const level=$('#difficulty').value;for(let i=0;i<7;i++)race.bots.push({p:-(i+1)*.006,lane:(i%3-1)*65,speed:(level==='easy'?155:level==='hard'?246:205)+i*2,color:['#F5F3ED','#C0C3CF','#FEFEFE','#000000','#F04718','#273848','#C0C3CF'][i],n:i+12})}
  buildWorld(track);$('#raceScreen').classList.remove('hidden');$('#pauseBtn').classList.toggle('hidden',online);$('#networkStatus').textContent=online?'ONLINE · CONECTANDO':'DIREÇÃO MANUAL · R PARA REPOSICIONAR';$('#overlay').classList.remove('hidden');requestAnimationFrame(frame);
@@ -446,9 +477,9 @@ function frame(now){
   const input={throttle:keys.arrowup||keys.w,brake:keys.arrowdown||keys.s,left:keys.arrowleft||keys.a,right:keys.arrowright||keys.d};
   // Fixed-sized substeps keep steering and collision response stable at lower frame rates.
   const steps=Math.max(1,Math.ceil(dt/(1/120)));for(let i=0;i<steps;i++)stepDriver(r,input,dt/steps);
-  const [rx,ry]=radii(r.track);
+  const length=trackMesh(r.track).total;
   for(const b of r.bots){
-   const a=-Math.PI/2+b.p*TAU,metric=TAU*Math.hypot(rx*Math.sin(a),ry*Math.cos(a));b.p+=b.speed*dt/metric;
+   b.p+=b.speed*dt/length;
    const pos=position(b.p,b.lane,r.track),dx=r.x-pos.x,dy=r.y-pos.y,distance=Math.hypot(dx,dy);
    if(distance<43&&distance>.01){const nx=dx/distance,ny=dy/distance;r.x+=nx*(43-distance);r.y+=ny*(43-distance);const approach=(r.vx-Math.cos(pos.angle)*b.speed)*nx+(r.vy-Math.sin(pos.angle)*b.speed)*ny;if(approach<0){r.vx-=approach*.8*nx;r.vy-=approach*.8*ny}}
   }
@@ -463,6 +494,7 @@ function frame(now){
  const ahead=r.online?r.remotes.filter(b=>b.progress>r.p).length:r.bots.filter(b=>b.p>r.p).length;
  $('#hudPos').textContent=(ahead+1)+' / '+(r.online?(room?.players.length||1):8);$('#hudLap').textContent=Math.min(3,Math.floor(r.p)+1)+' / 3';$('#hudSpeed').textContent=Math.round(r.speed*1.05);$('#hudTime').textContent=fmt(r.elapsed);requestAnimationFrame(frame);
 }
-refreshStats();drawHero();drawGarage();refreshAccount();
+function drawTrackCards(){$$('[data-track]').forEach(button=>{const track=+button.dataset.track;let points='';for(let i=0;i<=200;i++){const p=position(i/200,0,track);points+=(p.x/20)+','+(p.y/20)+' '}const s=position(0,0,track);button.insertAdjacentHTML('afterbegin','<svg viewBox="0 0 240 144" width="100%" height="95" aria-hidden="true"><polyline points="'+points+'" fill="none" stroke="currentColor" stroke-width="5" stroke-linejoin="round"/><circle cx="'+s.x/20+'" cy="'+s.y/20+'" r="4" fill="#F04718"/></svg>')})}
+drawTrackCards();refreshStats();drawHero();drawGarage();refreshAccount();
 if(location.protocol==='file:'){$('#downloadOffline').classList.add('hidden');$('#onlineGuest').innerHTML='<h2>Você está na versão offline.</h2><p class="muted">Para campeonatos e login, abra a versão online do Propulsão.</p><a class="primary" style="display:inline-block;padding:13px;border-radius:6px" href="https://oval-rush-racing-andre.drupaman.chatgpt.site" target="_blank" rel="noopener">Abrir versão online ↗</a>'}
 </script></body></html>
