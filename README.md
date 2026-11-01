@@ -16,6 +16,11 @@ Abra `Propulsao-Offline.html` em um navegador. Não precisa instalar dependênci
 ## Pilotagem e câmera
 Mapa de 4800 × 2880 unidades, quatro vezes maior em cada dimensão. Carro fixo no centro da câmera; minimapa mostra o circuito completo. A física inclui esterçamento progressivo, inércia lateral, limite de aderência em curvas, freios, grama com menor tração e colisão com o muro externo. As voltas exigem 16 setores em ordem. Os recordes desta física usam armazenamento separado da versão assistida.
 
+## Colisões contra a IA
+Os oito carros usam posição e velocidade físicas. Contato por carroceria orientada transfere impulso aos dois carros, com atrito e rotação em impactos fora do centro. A IA volta a pilotar após o empurrão; engavetamentos afetam os demais adversários. O muro considera o tamanho do carro. Carros em recuperação ficam temporariamente fora das colisões.
+
+Esta física entre carros está disponível no single player. O modo online mantém a sincronização anterior sem colisões entre jogadores.
+
 ## Som
 Gravações reais de motor (domasx2, CC0) e pneus (Mike Koenig / SoundBible, CC BY 3.0), incorporadas em PCM16 para funcionar offline. Motor acompanha aceleração e marchas virtuais. Frenagem e derrapagem usam mixagens da gravação dos pneus. Créditos e alterações em public/audio/CREDITS.md e na tela “Créditos de áudio”.
 
@@ -37,3 +42,5 @@ Node >=22.13, npm ci, npm run dev. Configuração de hospedagem em `.openai/host
 Verificação TypeScript e testes de lógica de corrida e rotas com SQLite em memória. O navegador e o build local foram bloqueados pelo ambiente Windows (spawn EPERM); a corrida foi inspecionada por renderização do Canvas, mas não em uma sessão interativa do navegador.
 
 Execute npm test para verificar direção manual, aderência, muro, câmera centralizada, checkpoints, três voltas de teste (uma em cada circuito), recuperação, pausa e rotas do campeonato.
+
+Os testes de colisão verificam transferência de impulso, conservação de momento, energia, contatos laterais, engavetamentos, muro, recuperação e voltas da IA física.

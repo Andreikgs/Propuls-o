@@ -264,7 +264,7 @@ function updateProgress(r){
  r.p=Math.min(3,r.gates/16+(part<1/16&&Math.abs(info.distance)<WORLD.halfRoad?part:0));
  return info;
 }
-function stepDriver(r,input,dt){
+function stepDriver(r,input,dt,deferProgress=false){
  if(r.recovery>0){r.recovery=Math.max(0,r.recovery-dt);r.speed=0;return}
  const info=trackInfo(r.x,r.y,r.track);r.offroad=Math.abs(info.distance)>WORLD.halfRoad;
  const desired=(input.right?1:0)-(input.left?1:0);
@@ -272,34 +272,92 @@ function stepDriver(r,input,dt){
  const c=Math.cos(r.angle),s=Math.sin(r.angle);
  let forward=r.vx*c+r.vy*s,lateral=-r.vx*s+r.vy*c;r.slip=Math.abs(lateral);
  const maxSpeed=r.offroad?85:330,accel=(input.throttle?(r.offroad?45:112):0)-(input.brake?230:0)-8-Math.max(0,forward)*.055;
- forward=clamp(forward+accel*dt,0,330);
+ forward=forward<0?Math.min(0,forward+((input.throttle?112:0)+45)*dt):clamp(forward+accel*dt,0,330);
  if(forward>maxSpeed)forward=Math.max(maxSpeed,forward-145*dt);
  const wheelAngle=r.steer*.48/(1+forward/120);
  const grip=r.offroad?60:165;
  const targetYaw=clamp(forward/48*Math.tan(wheelAngle),-grip/Math.max(60,forward),grip/Math.max(60,forward));
  r.yaw+=(targetYaw-r.yaw)*(1-Math.exp(-dt*7));
  if(forward<.5)r.yaw=0;
- r.angle+=r.yaw*dt;
- lateral*=Math.exp(-(r.offroad?2.4:8.5)*dt);
+ r.impactYaw=(r.impactYaw||0)*Math.exp(-dt*2.2);r.contactTime=Math.max(0,(r.contactTime||0)-dt);
+ r.angle+=(r.yaw+r.impactYaw)*dt;
+ lateral*=Math.exp(-(r.offroad?2.4:r.contactTime>0?3:8.5)*dt);
  // Velocity retains the previous heading: the chassis turns before the tires recover grip.
  r.vx=c*forward-s*lateral;r.vy=s*forward+c*lateral;
  r.x+=r.vx*dt;r.y+=r.vy*dt;
- const contact=trackInfo(r.x,r.y,r.track);
- if(contact.distance>WORLD.halfRoad+24){
-  const penetration=contact.distance-(WORLD.halfRoad+24);
-  r.x-=contact.nx*penetration;r.y-=contact.ny*penetration;
-  const normal=r.vx*contact.nx+r.vy*contact.ny;
-  if(normal>0){r.vx-=1.15*normal*contact.nx;r.vy-=1.15*normal*contact.ny;r.vx*=.87;r.vy*=.87}
- }
- r.x=clamp(r.x,30,WORLD.width-30);r.y=clamp(r.y,30,WORLD.height-30);r.speed=Math.hypot(r.vx,r.vy);
+ containCar(r);
  if((Math.abs(lateral)>13||input.brake&&r.speed>80)&&r.skids.length<350){
   r.skids.push({x:r.x,y:r.y,a:r.angle,life:5});
  }
- updateProgress(r);
+ if(!deferProgress)updateProgress(r);
 }
+
+const CAR_BODY={halfLength:32,halfWidth:15,inertia:(64*64+30*30)/12};
+function carAxes(b){return[{x:Math.cos(b.angle),y:Math.sin(b.angle)},{x:-Math.sin(b.angle),y:Math.cos(b.angle)}]}
+function bodyRadius(b,n){const axes=carAxes(b);return CAR_BODY.halfLength*Math.abs(axes[0].x*n.x+axes[0].y*n.y)+CAR_BODY.halfWidth*Math.abs(axes[1].x*n.x+axes[1].y*n.y)}
+function collisionContact(a,b){
+ if(Math.hypot(b.x-a.x,b.y-a.y)>72)return null;
+ let penetration=Infinity,normal;
+ for(const axis of [...carAxes(a),...carAxes(b)]){
+ const d=(b.x-a.x)*axis.x+(b.y-a.y)*axis.y,overlap=bodyRadius(a,axis)+bodyRadius(b,axis)-Math.abs(d);
+ if(overlap<=0)return null;
+ if(overlap<penetration){penetration=overlap;normal={x:axis.x*(d<0?-1:1),y:axis.y*(d<0?-1:1)}}
+ }
+ const n=normal,t={x:-n.y,y:n.x},an=a.x*n.x+a.y*n.y,bn=b.x*n.x+b.y*n.y,at=a.x*t.x+a.y*t.y,bt=b.x*t.x+b.y*t.y;
+ const plane=(an+bodyRadius(a,n)+bn-bodyRadius(b,n))/2;
+ const tangent=(Math.max(at-bodyRadius(a,t),bt-bodyRadius(b,t))+Math.min(at+bodyRadius(a,t),bt+bodyRadius(b,t)))/2;
+ return {n,penetration,x:n.x*plane+t.x*tangent,y:n.y*plane+t.y*tangent};
+}
+function resolveCarCollision(a,b){
+ if(a.recovery>0||b.recovery>0)return false;
+ const contact=collisionContact(a,b);if(!contact)return false;
+ const {n}=contact,ra={x:contact.x-a.x,y:contact.y-a.y},rb={x:contact.x-b.x,y:contact.y-b.y};
+ const invI=1/CAR_BODY.inertia,cross=(r,v)=>r.x*v.y-r.y*v.x;
+ const wa=(a.yaw||0)+(a.impactYaw||0),wb=(b.yaw||0)+(b.impactYaw||0);
+ const rv={x:b.vx-wb*rb.y-a.vx+wa*ra.y,y:b.vy+wb*rb.x-a.vy-wa*ra.x};
+ const approach=rv.x*n.x+rv.y*n.y;
+ if(approach<0){
+ const ca=cross(ra,n),cb=cross(rb,n),j=-(1+(approach<-15?.12:0))*approach/(2+(ca*ca+cb*cb)*invI);
+ const tangent={x:-n.y,y:n.x},ta=cross(ra,tangent),tb=cross(rb,tangent);
+ const jt=clamp(-(rv.x*tangent.x+rv.y*tangent.y)/(2+(ta*ta+tb*tb)*invI),-.22*j,.22*j);
+ const impulse={x:j*n.x+jt*tangent.x,y:j*n.y+jt*tangent.y};
+ a.vx-=impulse.x;a.vy-=impulse.y;b.vx+=impulse.x;b.vy+=impulse.y;
+ a.impactYaw=(a.impactYaw||0)-cross(ra,impulse)*invI;b.impactYaw=(b.impactYaw||0)+cross(rb,impulse)*invI;
+ a.contactTime=b.contactTime=.35;
+ }
+ const correction=Math.max(0,contact.penetration-.15)*.42;
+ a.x-=n.x*correction;a.y-=n.y*correction;b.x+=n.x*correction;b.y+=n.y*correction;
+ a.speed=Math.hypot(a.vx,a.vy);b.speed=Math.hypot(b.vx,b.vy);return true;
+}
+function containCar(r){
+ const contact=trackInfo(r.x,r.y,r.track),extent=bodyRadius(r,{x:contact.nx,y:contact.ny}),limit=WORLD.halfRoad+24-extent;
+ if(contact.distance>limit){
+ r.x-=contact.nx*(contact.distance-limit);r.y-=contact.ny*(contact.distance-limit);
+ const normal=r.vx*contact.nx+r.vy*contact.ny;
+ if(normal>0){r.vx-=1.1*normal*contact.nx;r.vy-=1.1*normal*contact.ny}
+ }
+ r.x=clamp(r.x,34,WORLD.width-34);r.y=clamp(r.y,34,WORLD.height-34);r.speed=Math.hypot(r.vx,r.vy);
+}
+function botInput(b){
+ const info=trackInfo(b.x,b.y,b.track),lookahead=55+b.speed*.24,target=position(info.fraction+lookahead/trackMesh(b.track).total,b.lane,b.track);
+ let error=Math.atan2(target.y-b.y,target.x-b.x)-b.angle;error=Math.atan2(Math.sin(error),Math.cos(error));
+ const steering=clamp(Math.atan(96*Math.sin(error)/Math.max(30,Math.hypot(target.x-b.x,target.y-b.y)))/(.48/(1+b.speed/120)),-1,1);
+ const targetSpeed=b.cruise*(Math.abs(error)>.65?.55:1);
+ return{throttle:b.speed<targetSpeed,brake:b.speed>targetSpeed+10,left:b.steer>steering+.025,right:b.steer<steering-.025};
+}
+function stepRacePhysics(r,input,dt){
+ stepDriver(r,input,dt,true);for(const b of r.bots)stepDriver(b,botInput(b),dt,true);
+ const bodies=[r,...r.bots];
+ for(let pass=0;pass<4;pass++){
+ const touched=new Set();for(let i=0;i<bodies.length;i++)for(let j=i+1;j<bodies.length;j++)if(resolveCarCollision(bodies[i],bodies[j])){touched.add(bodies[i]);touched.add(bodies[j])}
+ for(const b of touched)containCar(b);if(!touched.size)break;
+ }
+ for(const b of bodies){updateProgress(b);if(b!==r)b.skids=[]}
+}
+
 function recoverDriver(r){
  if(r.done||r.recovery>0||performance.now()<r.start)return;
- const safe=position(r.gates/16,0,r.track);Object.assign(r,safe,{vx:0,vy:0,speed:0,steer:0,yaw:0,recovery:3,prevFraction:wrap(r.gates/16),p:r.gates/16,wrongWay:false});
+ const safe=position(r.gates/16,0,r.track);Object.assign(r,safe,{vx:0,vy:0,speed:0,steer:0,yaw:0,impactYaw:0,contactTime:0,recovery:3,prevFraction:wrap(r.gates/16),p:r.gates/16,wrongWay:false});
 }
 let mapCache=null,mapTrack=-1;
 function buildWorld(track){
@@ -362,13 +420,13 @@ function renderRace(r){
  const g=$('#raceCanvas').getContext('2d'),map=buildWorld(r.track),camera=cameraFor(r);g.fillStyle='#F5F3ED';g.fillRect(0,0,1200,720);
  g.save();g.translate(-camera.x,-camera.y);g.drawImage(map,0,0);
  g.strokeStyle='#00000088';g.lineWidth=3;for(const skid of r.skids){g.save();g.translate(skid.x,skid.y);g.rotate(skid.a);g.beginPath();g.moveTo(-16,-12);g.lineTo(-26,-12);g.moveTo(-16,12);g.lineTo(-26,12);g.stroke();g.restore()}
- for(const b of r.bots){const p=position(b.p,b.lane,r.track);car(g,p.x,p.y,p.angle,b.color,b.n,1.5)}
+ for(const b of r.bots)car(g,b.x,b.y,b.angle,b.color,b.n,1.5,b.steer*.32)
  for(const b of r.remotes){if(b.updated&&b.x){car(g,b.x,b.y,b.angle,b.color,'•',1.5);g.fillStyle='#FEFEFE';g.font='12px Arial';g.textAlign='center';g.fillText(b.name,b.x,b.y-35)}}
  car(g,r.x,r.y,r.angle,profile.color,27,1.5,r.steer*.32);g.restore();
  // The camera translation always puts the player's world position at the viewport center.
  g.save();g.translate(950,22);g.fillStyle='#273848F2';g.beginPath();g.roundRect(0,0,228,155,10);g.fill();g.drawImage(map,8,8,212,127);g.font='9px Arial';g.textAlign='left';g.fillStyle='#F5F3ED';g.fillText('MAPA DO CIRCUITO',12,146);
  const dot=(x,y,color,size)=>{g.fillStyle=color;g.beginPath();g.arc(8+x/WORLD.width*212,8+y/WORLD.height*127,size,0,TAU);g.fill()};
- for(const b of r.bots){const p=position(b.p,b.lane,r.track);dot(p.x,p.y,b.color,2)}
+ for(const b of r.bots)dot(b.x,b.y,b.color,2);
  for(const b of r.remotes)if(b.updated)dot(b.x,b.y,b.color,2);
  dot(r.x,r.y,profile.color,4);g.restore();
  let alert=r.recovery>0?'RETORNO À PISTA · '+Math.ceil(r.recovery)+'s':r.wrongWay?'SENTIDO CONTRÁRIO':r.offroad?'FORA DO ASFALTO · ADERÊNCIA REDUZIDA':'';
@@ -454,7 +512,7 @@ raceAudio.ui();
 function startRace(online=false){
  if(race&&race.active)return;raceAudio.unlock();keys={};const track=online?championshipTrack(room.cup.round):selectedTrack;
  race={...createDriver(track),active:true,online,elapsed:0,paused:false,done:false,start:online?performance.now()+room.cup.start-room.now:performance.now()+3500,remotes:[],bots:[],last:performance.now(),sent:0,pending:false,round:online?room.cup.round:0};
- if(!online){const level=$('#difficulty').value;for(let i=0;i<7;i++)race.bots.push({p:-(i+1)*.006,lane:(i%3-1)*65,speed:(level==='easy'?155:level==='hard'?246:205)+i*2,color:['#F5F3ED','#C0C3CF','#FEFEFE','#000000','#F04718','#273848','#C0C3CF'][i],n:i+12})}
+ if(!online){const level=$('#difficulty').value;for(let i=0;i<7;i++){const p=-(i+1)*100/trackMesh(track).total,lane=(i%3-1)*65;race.bots.push({...createDriver(track),...position(p,lane,track),p,gates:Math.floor(p*16),prevFraction:wrap(p),lane,cruise:(level==='easy'?155:level==='hard'?246:205)+i*2,color:['#F5F3ED','#C0C3CF','#FEFEFE','#000000','#F04718','#273848','#C0C3CF'][i],n:i+12})}}
  buildWorld(track);$('#raceScreen').classList.remove('hidden');$('#pauseBtn').classList.toggle('hidden',online);$('#networkStatus').textContent=online?'ONLINE · CONECTANDO':'DIREÇÃO MANUAL · R PARA REPOSICIONAR';$('#overlay').classList.remove('hidden');requestAnimationFrame(frame);
 }
 $('#startOffline').onclick=()=>startRace();
@@ -476,13 +534,7 @@ function frame(now){
   if(!$('#leaveNow'))$('#overlay').classList.add('hidden');r.elapsed+=dt*1000;
   const input={throttle:keys.arrowup||keys.w,brake:keys.arrowdown||keys.s,left:keys.arrowleft||keys.a,right:keys.arrowright||keys.d};
   // Fixed-sized substeps keep steering and collision response stable at lower frame rates.
-  const steps=Math.max(1,Math.ceil(dt/(1/120)));for(let i=0;i<steps;i++)stepDriver(r,input,dt/steps);
-  const length=trackMesh(r.track).total;
-  for(const b of r.bots){
-   b.p+=b.speed*dt/length;
-   const pos=position(b.p,b.lane,r.track),dx=r.x-pos.x,dy=r.y-pos.y,distance=Math.hypot(dx,dy);
-   if(distance<43&&distance>.01){const nx=dx/distance,ny=dy/distance;r.x+=nx*(43-distance);r.y+=ny*(43-distance);const approach=(r.vx-Math.cos(pos.angle)*b.speed)*nx+(r.vy-Math.sin(pos.angle)*b.speed)*ny;if(approach<0){r.vx-=approach*.8*nx;r.vy-=approach*.8*ny}}
-  }
+  const steps=Math.max(1,Math.ceil(dt/(1/120)));for(let i=0;i<steps;i++){if(r.online)stepDriver(r,input,dt/steps);else stepRacePhysics(r,input,dt/steps)}
   for(const s of r.skids)s.life-=dt;r.skids=r.skids.filter(s=>s.life>0);
   if(r.online&&now-r.sent>350){r.sent=now;sendState()}
   if(r.p>=3)finish();
