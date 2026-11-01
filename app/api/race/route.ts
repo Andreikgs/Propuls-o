@@ -16,7 +16,7 @@ export async function POST(req:Request){
  if(req.headers.get('origin')!==new URL(req.url).origin)return json({error:'Origem inválida.'},403);
  if(!env.DB)return json({error:'Banco indisponível.'},503);
  let b:any;try{b=await req.json()}catch{return json({error:'Pedido inválido.'},400)}
- const db=env.DB,uid=user.userId,name=String(b.name||user.fullName||user.email.split('@')[0]).trim().slice(0,24)||'Piloto',color=/^#[a-f0-9]{6}$/i.test(b.color)?b.color:'#dcff38';
+ const db=env.DB,uid=user.userId,name=String(b.name||user.fullName||user.email.split('@')[0]).trim().slice(0,24)||'Piloto',color=/^#[a-f0-9]{6}$/i.test(b.color)?b.color:'#F04718';
  if(b.action==='create'){
  const id=crypto.randomUUID().replaceAll('-','').slice(0,10).toUpperCase(),title=String(b.title||'').trim().slice(0,60);if(!title)return json({error:'Dê um nome ao campeonato.'},400);
  await db.batch([db.prepare('INSERT INTO cups(id,name,owner,rounds,created) VALUES(?,?,?,?,?)').bind(id,title,uid,[3,5,8].includes(b.rounds)?b.rounds:3,Date.now()),db.prepare('INSERT INTO members(cup,user,name,color) VALUES(?,?,?,?)').bind(id,uid,name,color)]);return json({id});}
