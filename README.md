@@ -51,3 +51,8 @@ Cada corrida tem 10 voltas. No single player são 15 carros (jogador + 14 IAs); 
 As barreiras interna e externa consideram o tamanho da carroceria. Após uma colisão, ficar preso por 5 segundos provoca retorno ao último setor validado, com a mesma proteção de recuperação de 3 segundos. Deslocar-se mais de 18 unidades cancela a detecção. Pausas não contam.
 
 A classificação usa distância assinada dentro do setor, sem retroceder ao tocar o acostamento, com tolerância de 2 unidades para evitar oscilações lado a lado e ordem de chegada preservada.
+
+## Pneus e pit stop
+Desgaste por distância (9% por volta de base), com acréscimo por derrapagem e frenagem. Pneus gastos reduzem aderência e velocidade máxima; aviso a 35%. A IA solicita boxes abaixo de 35%.
+
+B ou botão Boxes solicita/cancela a parada. A faixa laranja interna após a chegada é a área de atendimento, dentro do corredor protegido pelas barreiras. Pare completamente para trocar os quatro pneus em 4 segundos. Durante o atendimento, o carro fica sem colisão com a IA para evitar bloqueio dos boxes. A pausa congela o serviço; o reset cancela o atendimento e não repara pneus. Jogadores online usam o mesmo desgaste e atendimento local; a sincronização online continua sem colisões entre jogadores.
