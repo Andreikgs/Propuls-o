@@ -46,3 +46,8 @@ Execute npm test para verificar direção manual, aderência, muro, câmera cent
 Os testes de colisão verificam transferência de impulso, conservação de momento, energia, contatos laterais, engavetamentos, muro, recuperação e voltas da IA física.
 
 Cada corrida tem 10 voltas. No single player são 15 carros (jogador + 14 IAs); o online aceita até 15 participantes humanos. Recordes antigos de 3 voltas não são comparados aos novos tempos.
+
+## Barreiras, recuperação e posição
+As barreiras interna e externa consideram o tamanho da carroceria. Após uma colisão, ficar preso por 5 segundos provoca retorno ao último setor validado, com a mesma proteção de recuperação de 3 segundos. Deslocar-se mais de 18 unidades cancela a detecção. Pausas não contam.
+
+A classificação usa distância assinada dentro do setor, sem retroceder ao tocar o acostamento, com tolerância de 2 unidades para evitar oscilações lado a lado e ordem de chegada preservada.

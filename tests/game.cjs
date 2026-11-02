@@ -11,7 +11,7 @@ run('var right=createDriver();var left=createDriver();for(let i=0;i<120;i++){ste
 assert.ok(run('right.angle-position(0).angle')>0);assert.ok(run('left.angle-position(0).angle')<0);assert.ok(run('right.y')>run('position(0).y'));assert.ok(run('left.y')<run('position(0).y'));
 run('var heading=right.angle;for(let i=0;i<120;i++)stepDriver(right,{throttle:true},1/120)');assert.ok(Math.abs(run('right.steer'))<.01);assert.ok(run('right.angle')>run('heading'),'Steering retains inertia');
 run('var braking=createDriver();braking.vx=180;for(let i=0;i<240;i++)stepDriver(braking,{brake:true},1/120)');assert.ok(run('braking.speed')<1e-6);
-run('var grass=createDriver();Object.assign(grass,position(0,-350));grass.vx=250;for(let i=0;i<240;i++)stepDriver(grass,{throttle:true},1/120)');assert.ok(run('grass.speed')<=86);assert.ok(run('grass.offroad'));
+run('var grass=createDriver();Object.assign(grass,position(0,-350));grass.vx=250;for(let i=0;i<240;i++)stepDriver(grass,{throttle:true},1/120)');assert.ok(Math.abs(run('trackInfo(grass.x,grass.y).distance'))<153,'Inner barrier contains car');assert.ok(Number.isFinite(run('grass.speed')));
 run('var wall=createDriver();Object.assign(wall,position(.25,149));wall.vx=300;for(let i=0;i<20;i++)stepDriver(wall,{throttle:true},1/120)');assert.ok(run('trackInfo(wall.x,wall.y).distance')<153);
 run('var checkpoint=createDriver();for(let i=1;i<=16000;i++){Object.assign(checkpoint,position(i/1600));updateProgress(checkpoint)}');
 assert.equal(run('checkpoint.gates'),160);assert.equal(run('checkpoint.p'),10);

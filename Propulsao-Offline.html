@@ -259,11 +259,11 @@ function updateProgress(r){
  let delta=f-r.prevFraction;if(delta>.5)delta--;if(delta<-.5)delta++;
  r.wrongWay=delta<-.00003&&r.speed>20;
  const gate=wrap((r.gates+1)/16),toGate=wrap(gate-r.prevFraction);
- if(Math.abs(info.distance)<WORLD.halfRoad&&delta>0&&delta<.03&&toGate>0&&toGate<=delta+.00000001)r.gates++;
+ if(Math.abs(info.distance)<WORLD.halfRoad+24&&delta>0&&delta<.03&&toGate>0&&toGate<=delta+.00000001)r.gates++;
  r.prevFraction=f;
- // Only interpolate inside the next expected sector; skipped gates cannot award a lap.
- const sectorStart=wrap(r.gates/16),part=wrap(f-sectorStart);
- r.p=Math.min(RACE_LAPS,r.gates/16+(part<1/16&&Math.abs(info.distance)<WORLD.halfRoad?part:0));
+ // Signed sector distance stays continuous at walls and when backing over a gate.
+ const sectorStart=wrap(r.gates/16);let part=f-sectorStart;if(part>.5)part--;if(part<-.5)part++;
+ r.p=r.gates>=RACE_LAPS*16?RACE_LAPS:r.gates/16+clamp(part,-1/16,1/16-1e-9);
  return info;
 }
 function stepDriver(r,input,dt,deferProgress=false){
@@ -291,7 +291,7 @@ function stepDriver(r,input,dt,deferProgress=false){
  if((Math.abs(lateral)>13||input.brake&&r.speed>80)&&r.skids.length<350){
   r.skids.push({x:r.x,y:r.y,a:r.angle,life:5});
  }
- if(!deferProgress)updateProgress(r);
+ if(!deferProgress){updateProgress(r);monitorStuck(r,dt)}
 }
 
 const CAR_BODY={halfLength:32,halfWidth:15,inertia:(64*64+30*30)/12};
@@ -325,7 +325,7 @@ function resolveCarCollision(a,b){
  const impulse={x:j*n.x+jt*tangent.x,y:j*n.y+jt*tangent.y};
  a.vx-=impulse.x;a.vy-=impulse.y;b.vx+=impulse.x;b.vy+=impulse.y;
  a.impactYaw=(a.impactYaw||0)-cross(ra,impulse)*invI;b.impactYaw=(b.impactYaw||0)+cross(rb,impulse)*invI;
- a.contactTime=b.contactTime=.35;
+ a.contactTime=b.contactTime=.35;if(approach<-8){a.collisionPending=b.collisionPending=true;}
  }
  const correction=Math.max(0,contact.penetration-.15)*.42;
  a.x-=n.x*correction;a.y-=n.y*correction;b.x+=n.x*correction;b.y+=n.y*correction;
@@ -333,10 +333,11 @@ function resolveCarCollision(a,b){
 }
 function containCar(r){
  const contact=trackInfo(r.x,r.y,r.track),extent=bodyRadius(r,{x:contact.nx,y:contact.ny}),limit=WORLD.halfRoad+24-extent;
- if(contact.distance>limit){
- r.x-=contact.nx*(contact.distance-limit);r.y-=contact.ny*(contact.distance-limit);
- const normal=r.vx*contact.nx+r.vy*contact.ny;
- if(normal>0){r.vx-=1.1*normal*contact.nx;r.vy-=1.1*normal*contact.ny}
+ if(Math.abs(contact.distance)>limit){
+ const side=contact.distance<0?-1:1,nx=contact.nx*side,ny=contact.ny*side;
+ r.x-=nx*(Math.abs(contact.distance)-limit);r.y-=ny*(Math.abs(contact.distance)-limit);
+ const normal=r.vx*nx+r.vy*ny;
+ if(normal>0){r.vx-=1.1*normal*nx;r.vy-=1.1*normal*ny;if(normal>8)r.collisionPending=true;}
  }
  r.x=clamp(r.x,34,WORLD.width-34);r.y=clamp(r.y,34,WORLD.height-34);r.speed=Math.hypot(r.vx,r.vy);
 }
@@ -354,12 +355,31 @@ function stepRacePhysics(r,input,dt){
  const touched=new Set();for(let i=0;i<bodies.length;i++)for(let j=i+1;j<bodies.length;j++)if(resolveCarCollision(bodies[i],bodies[j])){touched.add(bodies[i]);touched.add(bodies[j])}
  for(const b of touched)containCar(b);if(!touched.size)break;
  }
- for(const b of bodies){updateProgress(b);if(b!==r)b.skids=[]}
+ for(const b of bodies){updateProgress(b);monitorStuck(b,dt);if(b.gates>=RACE_LAPS*16&&!b.finishPlace){r.finishCounter=(r.finishCounter||0)+1;b.finishPlace=r.finishCounter}if(b!==r)b.skids=[]}
+}
+
+
+function monitorStuck(b,dt){
+ if(b.done||b.recovery>0){b.stuckSeconds=0;b.stuckAnchor=null;return}
+ if(!b.collisionPending)return;
+ if(!b.stuckAnchor)b.stuckAnchor={x:b.x,y:b.y};
+ const moved=Math.hypot(b.x-b.stuckAnchor.x,b.y-b.stuckAnchor.y);
+ if(moved>18){b.stuckSeconds=0;b.stuckAnchor=null;b.collisionPending=false;return}
+ b.freeSeconds=0;b.stuckSeconds=(b.stuckSeconds||0)+dt;
+ if(b.stuckSeconds>=5-1e-8){recoverDriver(b);if(b===race)toast('Carro preso após a batida: retorno automático à pista.')}
+}
+function racePosition(r){
+ if(r.finishPlace)return r.finishPlace;
+ const opponents=r.online?r.remotes:r.bots,epsilon=2/trackMesh(r.track).total;
+ r.aheadCars=r.aheadCars||new Set();
+ for(const b of opponents){const id=r.online?b.user:b.n,p=r.online?b.progress:b.p;
+ if(b.finishPlace||p-r.p>epsilon)r.aheadCars.add(id);else if(r.p-p>epsilon)r.aheadCars.delete(id)}
+ return 1+opponents.filter(b=>r.aheadCars.has(r.online?b.user:b.n)).length;
 }
 
 function recoverDriver(r){
  if(r.done||r.recovery>0||performance.now()<r.start)return;
- const safe=position(r.gates/16,0,r.track);Object.assign(r,safe,{vx:0,vy:0,speed:0,steer:0,yaw:0,impactYaw:0,contactTime:0,recovery:3,prevFraction:wrap(r.gates/16),p:r.gates/16,wrongWay:false});
+ const safe=position(r.gates/16,0,r.track);Object.assign(r,safe,{vx:0,vy:0,speed:0,steer:0,yaw:0,impactYaw:0,contactTime:0,recovery:3,prevFraction:wrap(r.gates/16),p:r.gates/16,wrongWay:false,collisionPending:false,stuckSeconds:0,stuckAnchor:null,freeSeconds:0});
 }
 let mapCache=null,mapTrack=-1;
 function buildWorld(track){
@@ -387,6 +407,8 @@ function buildWorld(track){
  band(-22,31,'#00000016');band(-22,15,'#0000000d');
  band(-118,2,'#f5f3edcc');band(118,2,'#f5f3edcc');
  g.setLineDash([22,38]);for(const lane of [-65,65])band(lane,1.3,'#c0c3cf55');g.setLineDash([]);g.restore();
+ // Inner concrete wall and shadow follow the same collision boundary.
+ band(-156,12,'#273848');band(-152,8,'#f5f3ed');band(-158,2,'#c0c3cf');
  // Catch fencing outside the wall, with regular posts.
  band(181,1,'#27384866');band(191,1,'#27384866');
  for(let i=0;i<220;i++){const p=position(i/220,187,track);g.save();g.translate(p.x,p.y);g.rotate(p.angle);g.fillStyle='#27384866';g.fillRect(-1,-9,2,18);g.fillStyle='#00000020';g.fillRect(1,0,9,2);g.restore()}
@@ -526,7 +548,7 @@ window.addEventListener('keydown',e=>{if(!race)return;if(['ArrowUp','ArrowDown',
 window.addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false);window.addEventListener('blur',()=>{keys={};if(race&&!race.online&&!race.paused&&!race.done)togglePause()});
 $$('[data-key]').forEach(b=>{b.onpointerdown=e=>{e.preventDefault();b.setPointerCapture(e.pointerId);keys[b.dataset.key.toLowerCase()]=true};b.onpointerup=b.onpointercancel=()=>keys[b.dataset.key.toLowerCase()]=false});
 async function sendState(force=false){const r=race;if(!r||!r.online||!room||performance.now()<r.start)return;if(r.pending){if(force)r.retry=true;return}r.pending=true;try{const pos={x:r.x,y:r.y,angle:r.angle};await action({action:'state',cup:room.cup.id,round:r.round,...pos,progress:Math.min(RACE_LAPS,r.p)});if(force){toast('Resultado registrado no campeonato.');const back=$('#finishBack');if(back){back.disabled=false;back.textContent='Ver classificação →'}}}catch(e){$('#networkStatus').textContent='FALHA DE SINCRONIZAÇÃO';if(force){toast('Resultado ainda não confirmado. Tentando novamente…');r.retry=true}}finally{r.pending=false}}
-function finish(){raceAudio.silence();const r=race;r.done=true;r.speed=0;keys={};const place=r.online?null:1+r.bots.filter(b=>b.p>r.p).length;if(!r.online){stats.count++;if(!stats.best||r.elapsed<stats.best)stats.best=r.elapsed;save()}else{sendState(true)}
+function finish(){raceAudio.silence();const r=race;r.done=true;r.speed=0;keys={};const place=r.online?null:racePosition(r);if(!r.online){stats.count++;if(!stats.best||r.elapsed<stats.best)stats.best=r.elapsed;save()}else{sendState(true)}
 $('#overlay').classList.remove('hidden');$('#overlay').innerHTML='<div class="panel"><div class="eyebrow">BANDEIRA QUADRICULADA</div><h2>'+ (r.online?'Etapa concluída!':place===1?'O topo é seu.':place+'º lugar no grid.')+'</h2><p class="muted">Tempo total <b class="win">'+fmt(r.elapsed)+'</b></p><p class="note">'+(r.online?'Os pontos serão atualizados após a chegada dos outros pilotos.':'Cada volta é uma nova chance de ir além.')+'</p><button class="primary" id="finishBack">'+(r.online?'Ver classificação →':'Voltar ao paddock →')+'</button></div>';$('#finishBack').onclick=leaveRace;if(r.online){$('#finishBack').disabled=true;$('#finishBack').textContent='Registrando resultado…'}}
 
 function frame(now){
@@ -545,8 +567,8 @@ function frame(now){
  if(r.retry&&!r.pending&&now-r.sent>1500){r.sent=now;r.retry=false;sendState(true)}
  raceAudio.update(r,{throttle:keys.arrowup||keys.w,brake:keys.arrowdown||keys.s});
  renderRace(r);
- const ahead=r.online?r.remotes.filter(b=>b.progress>r.p).length:r.bots.filter(b=>b.p>r.p).length;
- $('#hudPos').textContent=(ahead+1)+' / '+(r.online?(room?.players.length||1):GRID_SIZE);$('#hudLap').textContent=Math.min(RACE_LAPS,Math.floor(r.p)+1)+' / '+RACE_LAPS;$('#hudSpeed').textContent=Math.round(r.speed*1.05);$('#hudTime').textContent=fmt(r.elapsed);requestAnimationFrame(frame);
+ const place=racePosition(r);
+ $('#hudPos').textContent=place+' / '+(r.online?(room?.players.length||1):GRID_SIZE);$('#hudLap').textContent=Math.min(RACE_LAPS,Math.floor(r.p)+1)+' / '+RACE_LAPS;$('#hudSpeed').textContent=Math.round(r.speed*1.05);$('#hudTime').textContent=fmt(r.elapsed);requestAnimationFrame(frame);
 }
 function drawTrackCards(){$$('[data-track]').forEach(button=>{const track=+button.dataset.track;let points='';for(let i=0;i<=200;i++){const p=position(i/200,0,track);points+=(p.x/20)+','+(p.y/20)+' '}const s=position(0,0,track);button.insertAdjacentHTML('afterbegin','<svg viewBox="0 0 240 144" width="100%" height="95" aria-hidden="true"><polyline points="'+points+'" fill="none" stroke="currentColor" stroke-width="5" stroke-linejoin="round"/><circle cx="'+s.x/20+'" cy="'+s.y/20+'" r="4" fill="#F04718"/></svg>')})}
 drawTrackCards();refreshStats();drawHero();drawGarage();refreshAccount();
