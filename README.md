@@ -14,7 +14,7 @@ Abra `Propulsao-Offline.html` em um navegador. Não precisa instalar dependênci
 - Mapas, referências e limites da adaptação em [CIRCUITOS.md](CIRCUITOS.md).
 
 ## Pilotagem e câmera
-Mapa de 4800 × 2880 unidades, quatro vezes maior em cada dimensão. Carro fixo no centro da câmera; minimapa mostra o circuito completo. A física inclui esterçamento progressivo, inércia lateral, limite de aderência em curvas, freios, grama com menor tração e colisão com o muro externo. As voltas exigem 16 setores em ordem. Os recordes desta física usam armazenamento separado da versão assistida.
+Mapa de 7200 × 4320 unidades, com os traçados ampliados em 50% e carros na escala anterior. Carro fixo no centro da câmera; minimapa mostra o circuito completo. A física inclui esterçamento progressivo, inércia lateral, limite de aderência em curvas, freios, grama com menor tração e colisão com o muro externo. As voltas exigem 16 setores em ordem. Os recordes desta física usam armazenamento separado da versão assistida.
 
 ## Colisões contra a IA
 Os 15 carros usam posição e velocidade físicas. Contato por carroceria orientada transfere impulso aos dois carros, com atrito e rotação em impactos fora do centro. A IA volta a pilotar após o empurrão; engavetamentos afetam os demais adversários. O muro considera o tamanho do carro. Carros em recuperação ficam temporariamente fora das colisões.
@@ -56,3 +56,5 @@ A classificação usa distância assinada dentro do setor, sem retroceder ao toc
 Desgaste por distância (9% por volta de base), com acréscimo por derrapagem e frenagem. Pneus gastos reduzem aderência e velocidade máxima; aviso a 35%. A IA solicita boxes abaixo de 35%.
 
 B ou botão Boxes solicita/cancela a parada. O pit lane é uma via separada no interior do circuito, com acesso PIT IN antes da chegada e retorno PIT OUT depois dos boxes. B apenas solicita/cancela a orientação: é preciso dirigir pela entrada, parar no box por 4 segundos e percorrer a saída. Há limitador automático a aproximadamente 80 km/h. A via tem suas próprias barreiras e mantém a contagem dos checkpoints durante a passagem. Durante o atendimento, o carro fica sem colisão com a IA para evitar bloqueio dos boxes. A pausa congela o serviço; o reset cancela o atendimento e não repara pneus. Jogadores online usam o mesmo desgaste e atendimento local; a sincronização online continua sem colisões entre jogadores.
+
+Os boxes usam uma reta de serviço dentro do circuito, com 15 garagens alinhadas, área de apoio e acessos graduais separados da faixa de corrida. A geometria acompanha a posição real da reta dianteira em cada traçado, independentemente da linha de chegada.

@@ -192,12 +192,12 @@ function car(ctx,x,y,a,color,n,scale=1,steering=0){
  ctx.restore();
 }
 function drawGarage(){const c=$('#carCanvas'),g=c.getContext('2d');g.clearRect(0,0,500,180);g.strokeStyle='#C0C3CF';for(let x=0;x<500;x+=25){g.beginPath();g.moveTo(x,0);g.lineTo(x,180);g.stroke()}car(g,250,90,0,$('#carColor').value,'27',4)}
-function previewPosition(p,lane,track=0){const q=position(p,lane*4,track);return{x:q.x/4,y:q.y/4,angle:q.angle}}
+function previewPosition(p,lane,track=0){const q=position(p,lane*6,track);return{x:q.x/6,y:q.y/6,angle:q.angle}}
 function circuit(g,track=0){g.drawImage(buildWorld(track),0,0,1200,720)}
 function drawHero(){const g=$('#heroCanvas').getContext('2d');g.save();g.translate(380,-90);g.scale(.95,.95);circuit(g);for(let i=0;i<10;i++){const p=previewPosition(.12+i*.035,(i%3-1)*23);car(g,p.x,p.y,p.angle,['#F04718','#F04718','#FEFEFE','#C0C3CF'][i%4],i+11,1.4)}g.restore()}
 
 const RACE_LAPS=10,GRID_SIZE=15,RACE_TIMEOUT=1800000;
-const WORLD={width:4800,height:2880,cx:2400,cy:1440,halfRoad:128};
+const WORLD={width:7200,height:4320,cx:3600,cy:2160,halfRoad:128};
 const wrap=n=>(n%1+1)%1,clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 
 const TRACKS=[
@@ -231,8 +231,9 @@ function trackMesh(track=0){
  [[-700,700],[-300,front],[0,front]]
  ];start[0]*=wide;curves=curves.map(c=>c.map(p=>[p[0]*wide,p[1]]));
  }
+ start=start.map(v=>v*1.5);curves=curves.map(c=>c.map(p=>p.map(v=>v*1.5)));
  const points=[];let from=start;
- for(const [b,c,d] of curves){for(let j=0;j<100;j++){const t=j/100,u=1-t;points.push({x:2400+u*u*u*from[0]+3*u*u*t*b[0]+3*u*t*t*c[0]+t*t*t*d[0],y:1440+u*u*u*from[1]+3*u*u*t*b[1]+3*u*t*t*c[1]+t*t*t*d[1]})}from=d}
+ for(const [b,c,d] of curves){for(let j=0;j<100;j++){const t=j/100,u=1-t;points.push({x:WORLD.cx+u*u*u*from[0]+3*u*u*t*b[0]+3*u*t*t*c[0]+t*t*t*d[0],y:WORLD.cy+u*u*u*from[1]+3*u*u*t*b[1]+3*u*t*t*c[1]+t*t*t*d[1]})}from=d}
  let total=0;const segments=points.map((a,i)=>{const b=points[(i+1)%points.length],dx=b.x-a.x,dy=b.y-a.y,len=Math.hypot(dx,dy),seg={x:a.x,y:a.y,dx,dy,len,s:total,nx:-dy/len,ny:dx/len};total+=len;return seg});
  const mesh={segments,total};trackMeshes.set(track,mesh);return mesh;
 }
@@ -268,17 +269,22 @@ function updateProgress(r){
  return info;
 }
 
-const PIT={entry:.90,span:.28,lane:-300,halfWidth:54,seconds:4,speed:75};
-function pitOffset(f){
- const u=wrap(f-PIT.entry),smooth=t=>t*t*(3-2*t);
+const PIT={entry:.86,span:.28,halfWidth:54,seconds:4,speed:75};
+function pitPhase(f,track=0){return wrap(f+TRACKS[track].offset-PIT.entry)}
+function pitFraction(u,track=0){return wrap(PIT.entry+u-TRACKS[track].offset)}
+function pitOffset(f,track=0){
+ const u=pitPhase(f,track),smooth=t=>t*t*(3-2*t);
  if(u>PIT.span)return null;
- if(u<.06)return -85+(PIT.lane+85)*smooth(u/.06);
- if(u>.20)return PIT.lane+(-85-PIT.lane)*smooth((u-.20)/.08);
- return PIT.lane;
+ const q=position(f,0,track),y=position(-TRACKS[track].offset,0,track).y-[700,800,420][track];
+ const lane=Math.min(-260,(y-q.y)/Math.cos(q.angle));
+ if(u<.08)return -85+(lane+85)*smooth(u/.08);
+ if(u>.20)return lane+(-85-lane)*smooth((u-.20)/.08);
+ return lane;
 }
-function pitGate(f){const u=wrap(f-PIT.entry);return u<.06||u>.20&&u<PIT.span}
+function pitPosition(u,track=0){const f=pitFraction(u,track);return position(f,pitOffset(f,track),track)}
+function pitGate(f,track=0){const u=pitPhase(f,track);return u<.08||u>.20&&u<PIT.span}
 function pitRoad(b,q=trackInfo(b.x,b.y,b.track)){
- const offset=pitOffset(q.fraction);
+ const offset=pitOffset(q.fraction,b.track);
  return b.inPitLane&&offset!==null&&Math.abs(q.distance-offset)<=PIT.halfWidth;
 }
 function tireGrip(b){return .55+.45*Math.sqrt(clamp(b.tires??1,0,1))}
@@ -288,7 +294,7 @@ function wearTires(b,input,dt){
  const stress=(Math.min(b.slip||0,100)*.000012+(input.brake&&b.speed>90?.0005:0))*dt;
  b.tires=clamp((b.tires??1)-abrasion-stress,0,1);
 }
-function inPitZone(b){const q=trackInfo(b.x,b.y,b.track);return pitRoad(b,q)&&q.fraction>=.025&&q.fraction<=.085&&Math.abs(q.distance-PIT.lane)<28}
+function inPitZone(b){const q=trackInfo(b.x,b.y,b.track),u=pitPhase(q.fraction,b.track);return pitRoad(b,q)&&u>=.10&&u<=.20&&Math.abs(q.distance-pitOffset(q.fraction,b.track))<28}
 function stepPit(b,dt){
  if(b.pitService>0){
  b.vx=b.vy=b.speed=b.yaw=b.impactYaw=0;b.pitService=Math.max(0,b.pitService-dt);
@@ -375,13 +381,13 @@ function resolveCarCollision(a,b){
  a.speed=Math.hypot(a.vx,a.vy);b.speed=Math.hypot(b.vx,b.vy);return true;
 }
 function containCar(r){
- const q=trackInfo(r.x,r.y,r.track),extent=bodyRadius(r,{x:q.nx,y:q.ny}),limit=WORLD.halfRoad+24-extent,offset=pitOffset(q.fraction);
+ const q=trackInfo(r.x,r.y,r.track),extent=bodyRadius(r,{x:q.nx,y:q.ny}),limit=WORLD.halfRoad+24-extent,offset=pitOffset(q.fraction,r.track);
  let low=-limit,high=limit;
- if(offset!==null&&(r.inPitLane||pitGate(q.fraction))){
+ if(offset!==null&&(r.inPitLane||pitGate(q.fraction,r.track))){
  const pitLow=offset-PIT.halfWidth+extent,pitHigh=offset+PIT.halfWidth-extent;
  if(r.inPitLane&&pitHigh<low){low=pitLow;high=pitHigh}else low=Math.min(low,pitLow);
  if(q.distance<-145)r.inPitLane=true;
- if(r.inPitLane&&wrap(q.fraction-PIT.entry)>.20&&q.distance>=-125){r.inPitLane=false;r.pitVisitServiced=false}
+ if(r.inPitLane&&pitPhase(q.fraction,r.track)>.20&&q.distance>=-125){r.inPitLane=false;r.pitVisitServiced=false}
  }else if(r.inPitLane){r.inPitLane=false;r.pitVisitServiced=false}
  const bounded=clamp(q.distance,low,high),penetration=q.distance-bounded;
  if(Math.abs(penetration)>.0001){
@@ -393,9 +399,9 @@ function containCar(r){
 }
 function botInput(b){
  if((b.tires??1)<.35&&!b.finishPlace)b.pitRequested=true;
- const info=trackInfo(b.x,b.y,b.track),approaching=b.inPitLane||b.pitRequested&&(info.fraction>.85||info.fraction<.18);
- const lookahead=55+b.speed*.24,targetFraction=info.fraction+lookahead/trackMesh(b.track).total,target=position(targetFraction,approaching?(pitOffset(wrap(targetFraction))??-85):b.lane,b.track);
- if(!b.pitVisitServiced&&inPitZone(b)&&info.fraction>=.03+((b.n||12)-12)*.002)return{brake:true};
+ const info=trackInfo(b.x,b.y,b.track),approaching=b.inPitLane||b.pitRequested&&(pitPhase(info.fraction,b.track)<PIT.span||pitPhase(info.fraction,b.track)>.95);
+ const lookahead=55+b.speed*.24,targetFraction=info.fraction+lookahead/trackMesh(b.track).total,target=position(targetFraction,approaching?(pitOffset(wrap(targetFraction),b.track)??-85):b.lane,b.track);
+ if(!b.pitVisitServiced&&inPitZone(b)&&pitPhase(info.fraction,b.track)>=.14+((b.n||12)-12)*.002)return{brake:true};
 
  let error=Math.atan2(target.y-b.y,target.x-b.x)-b.angle;error=Math.atan2(Math.sin(error),Math.cos(error));
  const steering=clamp(Math.atan(96*Math.sin(error)/Math.max(30,Math.hypot(target.x-b.x,target.y-b.y)))/(.48/(1+b.speed/120)),-1,1);
@@ -443,10 +449,10 @@ function buildWorld(track){
  const path=(lane)=>{g.beginPath();for(let i=0;i<=900;i++){const p=position(i/900,lane,track);if(i)g.lineTo(p.x,p.y);else g.moveTo(p.x,p.y)}g.closePath()};
  const band=(lane,width,color)=>{path(lane);g.strokeStyle=color;g.lineWidth=width;g.stroke()};
  // Deterministic scenery is baked once, never regenerated in the animation loop.
- g.fillStyle=['#bec3b5','#c9bda8','#aebcc0'][track];g.fillRect(0,0,4800,2880);
- for(let y=0;y<2880;y+=110){g.fillStyle='#27384809';g.fillRect(0,y,4800,55)}
- for(let i=0;i<14000;i++){g.fillStyle=i%2?'#ffffff15':'#27384812';g.fillRect((i*431)%4800,(i*787)%2880,2+i%3,1)}
- for(let i=0;i<420;i++){const x=(i*397)%4800,y=(i*179)%2880;if(trackInfo(x,y,track).distance>350){
+ g.fillStyle=['#bec3b5','#c9bda8','#aebcc0'][track];g.fillRect(0,0,7200,4320);
+ for(let y=0;y<4320;y+=110){g.fillStyle='#27384809';g.fillRect(0,y,7200,55)}
+ for(let i=0;i<14000;i++){g.fillStyle=i%2?'#ffffff15':'#27384812';g.fillRect((i*431)%7200,(i*787)%4320,2+i%3,1)}
+ for(let i=0;i<420;i++){const x=(i*397)%7200,y=(i*179)%4320;if(trackInfo(x,y,track).distance>350){
  g.fillStyle='#00000025';g.beginPath();g.ellipse(x+12,y+13,19,13,0,0,TAU);g.fill();
  for(let j=0;j<3;j++){g.fillStyle=['#46584f','#58695b','#71806a'][j];g.beginPath();g.arc(x+j*3,y-j*4,16-j*3+i%7,0,TAU);g.fill()}
  }}
@@ -462,14 +468,26 @@ function buildWorld(track){
  band(-118,2,'#f5f3edcc');band(118,2,'#f5f3edcc');
  g.setLineDash([22,38]);for(const lane of [-65,65])band(lane,1.3,'#c0c3cf55');g.setLineDash([]);g.restore();
  // Separate pit road inside the infield, with two connections through the inner wall.
- const pitPath=(shift)=>{g.beginPath();for(let i=0;i<=240;i++){const f=wrap(PIT.entry+PIT.span*i/240),p=position(f,(pitOffset(f)??-85)+shift,track);if(i)g.lineTo(p.x,p.y);else g.moveTo(p.x,p.y)}};
+ const pitPath=(shift)=>{g.beginPath();for(let i=0;i<=240;i++){const f=pitFraction(PIT.span*i/240,track),p=position(f,(pitOffset(f,track)??-85)+shift,track);if(i)g.lineTo(p.x,p.y);else g.moveTo(p.x,p.y)}};
  pitPath(0);g.lineWidth=120;g.strokeStyle='#273848';g.stroke();g.lineWidth=110;g.strokeStyle='#F5F3ED';g.stroke();g.lineWidth=104;g.strokeStyle='#414c55';g.stroke();
  pitPath(0);g.lineWidth=2;g.strokeStyle='#F04718';g.setLineDash([16,16]);g.stroke();g.setLineDash([]);
- for(const offset of [-156,-152]){g.beginPath();let connected=false;for(let i=0;i<=1000;i++){const f=i/1000,u=wrap(f-PIT.entry),gate=(u>.008&&u<.06)||(u>.20&&u<.275);
+ for(const offset of [-156,-152]){g.beginPath();let connected=false;for(let i=0;i<=1000;i++){const f=i/1000,u=pitPhase(f,track),gate=(u>.008&&u<.08)||(u>.20&&u<.275);
  if(gate){connected=false;continue}const p=position(f,offset,track);if(connected)g.lineTo(p.x,p.y);else g.moveTo(p.x,p.y);connected=true}
  g.strokeStyle=offset===-156?'#273848':'#F5F3ED';g.lineWidth=offset===-156?12:7;g.stroke();}
- for(let i=0;i<5;i++){const p=position(.03+i*.011,PIT.lane,track);g.save();g.translate(p.x,p.y);g.rotate(p.angle);g.fillStyle='#F0471844';g.fillRect(-34,-23,68,46);g.strokeStyle='#F04718';g.lineWidth=2;g.strokeRect(-34,-23,68,46);g.fillStyle='#F5F3ED';g.font='bold 11px Arial';g.textAlign='center';g.fillText('BOX '+(i+1),0,4);g.fillStyle='#273848';g.fillRect(-34,-82,68,32);g.fillStyle='#F04718';g.fillRect(-34,-82,68,5);g.restore()}
- for(const [f,label] of [[.90,'PIT IN →'],[.18,'PIT OUT →']]){const p=position(f,-102,track);g.save();g.translate(p.x,p.y);g.rotate(p.angle);g.fillStyle='#F04718';g.fillRect(-48,-18,96,36);g.fillStyle='#000';g.font='bold 12px Arial';g.textAlign='center';g.fillText(label,0,4);g.restore()}
+ // A continuous garage apron backs the straight service lane.
+ const first=pitPosition(.10,track),last=pitPosition(.20,track);
+ g.fillStyle='#89908e';g.fillRect(first.x-60,first.y-235,last.x-first.x+120,180);
+ g.fillStyle='#59636a';g.fillRect(first.x-60,first.y-235,last.x-first.x+120,65);
+ for(let i=0;i<15;i++){
+ const p={x:first.x+40+i*(last.x-first.x-80)/14,y:first.y};
+ g.fillStyle='#F0471828';g.fillRect(p.x-31,p.y-24,62,48);g.strokeStyle='#F5F3ED';g.lineWidth=2;g.strokeRect(p.x-31,p.y-24,62,48);
+ g.fillStyle='#F04718';g.fillRect(p.x-31,p.y-55,62,4);
+ g.fillStyle='#00000025';g.fillRect(p.x-28,p.y-154,64,85);
+ g.fillStyle=i%3?'#273848':'#F04718';g.fillRect(p.x-32,p.y-164,64,85);
+ g.fillStyle='#C0C3CF';g.fillRect(p.x-27,p.y-88,54,9);
+ g.fillStyle='#F5F3ED';g.font='bold 12px Arial';g.textAlign='center';g.fillText(String(i+1).padStart(2,'0'),p.x,p.y-115);
+ }
+ for(const [u,label] of [[0,'PIT IN →'],[.28,'PIT OUT →']]){const p=position(pitFraction(u,track),-102,track);g.save();g.translate(p.x,p.y);g.rotate(p.angle);g.fillStyle='#F04718';g.fillRect(-48,-18,96,36);g.fillStyle='#000';g.font='bold 12px Arial';g.textAlign='center';g.fillText(label,0,4);g.restore()}
  // Catch fencing outside the wall, with regular posts.
  band(181,1,'#27384866');band(191,1,'#27384866');
  for(let i=0;i<220;i++){const p=position(i/220,187,track);g.save();g.translate(p.x,p.y);g.rotate(p.angle);g.fillStyle='#27384866';g.fillRect(-1,-9,2,18);g.fillStyle='#00000020';g.fillRect(1,0,9,2);g.restore()}
@@ -477,17 +495,7 @@ function buildWorld(track){
  for(let y=-128;y<128;y+=16)for(let x=-16;x<16;x+=16){g.fillStyle=((y+128)/16+(x+16)/16)%2?'#fefefe':'#10161b';g.fillRect(x,y,16,16)}g.restore();
  for(let i=0;i<16;i++){const p=position(-.005*(i+1),(i%2?1:-1)*52,track);g.save();g.translate(p.x,p.y);g.rotate(p.angle);g.strokeStyle='#fefefe99';g.lineWidth=1.5;g.strokeRect(-31,-18,62,36);g.fillStyle='#fefefe99';g.font='12px Arial';g.fillText(String(i+1),-45,4);g.restore()}
  // Infield branding and a separate pit complex.
- g.fillStyle='#27384822';g.textAlign='center';g.font='italic 900 110px Arial';g.fillText(TRACKS[track].name.toUpperCase(),2400,1290);g.font='24px Arial';g.fillText('PROPULSÃO / '+TRACKS[track].miles+' / SENTIDO ANTI-HORÁRIO',2400,1340);
- g.save();g.translate(2400,1580);g.scale(track===2?.55:.8,track===2?.55:.8);g.translate(-2400,-1800);g.fillStyle='#00000018';g.fillRect(1670,1660,1480,360);g.fillStyle='#737e83';g.fillRect(1660,1650,1480,350);
- g.fillStyle='#35424a';g.fillRect(1690,1680,1420,105);g.strokeStyle='#f5f3ed';g.lineWidth=2;g.setLineDash([20,22]);g.beginPath();g.moveTo(1700,1732);g.lineTo(3100,1732);g.stroke();g.setLineDash([]);
- g.fillStyle='#f04718';g.fillRect(1690,1786,1420,5);
- for(let i=0;i<12;i++){const x=1710+i*115;
- g.fillStyle='#fefefe88';g.fillRect(x,1797,2,50);g.fillStyle='#273848';g.fillRect(x+8,1850,101,120);
- g.fillStyle='#00000033';g.fillRect(x+16,1860,101,120);g.fillStyle=i%3===0?'#F04718':'#c0c3cf';g.fillRect(x+8,1844,101,100);
- g.fillStyle='#ffffff22';g.fillRect(x+8,1844,101,9);g.fillStyle='#27384844';for(let k=0;k<5;k++)g.fillRect(x+14,1865+k*13,89,1);
- g.fillStyle='#101820';g.fillRect(x+18,1834,80,10);g.fillStyle='#fefefe';g.font='bold 12px Arial';g.fillText(String(i+1).padStart(2,'0'),x+59,1824);
- }
- g.restore();
+ g.fillStyle='#27384822';g.textAlign='center';g.font='italic 900 110px Arial';g.fillText(TRACKS[track].name.toUpperCase(),WORLD.cx,WORLD.cy-230);g.font='24px Arial';g.fillText('PROPULSÃO / '+TRACKS[track].miles+' / SENTIDO ANTI-HORÁRIO',WORLD.cx,WORLD.cy-180);
  // Tiered grandstands: concrete aisles, seating and roof shadows.
  for(let i=0;i<48;i++){
  if(track!==2&&i>9&&i<37)continue;
@@ -513,7 +521,7 @@ function renderRace(r){
  const dot=(x,y,color,size)=>{g.fillStyle=color;g.beginPath();g.arc(8+x/WORLD.width*212,8+y/WORLD.height*127,size,0,TAU);g.fill()};
  for(const b of r.bots)dot(b.x,b.y,b.color,2);
  for(const b of r.remotes)if(b.updated)dot(b.x,b.y,b.color,2);
- const pit=position(.06,PIT.lane,r.track);dot(pit.x,pit.y,'#F04718',5);dot(r.x,r.y,profile.color,4);g.restore();
+ const pit=pitPosition(.16,r.track);dot(pit.x,pit.y,'#F04718',5);dot(r.x,r.y,profile.color,4);g.restore();
  let alert=r.pitService>0?'TROCANDO PNEUS · '+r.pitService.toFixed(1)+'s':r.pitRequested?'BOXES · ENTRE EM PIT IN E PARE NO BOX':r.inPitLane?'PIT LANE · LIMITE 80 KM/H · SAÍDA PIT OUT':r.recovery>0?'RETORNO À PISTA · '+Math.ceil(r.recovery)+'s':r.wrongWay?'SENTIDO CONTRÁRIO':r.offroad?'FORA DO ASFALTO · ADERÊNCIA REDUZIDA':'';
  if(alert){g.fillStyle='#F04718';g.fillRect(340,640,520,42);g.fillStyle='#000000';g.font='bold 15px Arial';g.textAlign='center';g.fillText(alert,600,667)}
 }
@@ -635,7 +643,7 @@ function frame(now){
  const place=racePosition(r);
  $('#hudPos').textContent=place+' / '+(r.online?(room?.players.length||1):GRID_SIZE);$('#hudLap').textContent=Math.min(RACE_LAPS,Math.floor(r.p)+1)+' / '+RACE_LAPS;$('#hudSpeed').textContent=Math.round(r.speed*1.05);$('#hudTime').textContent=fmt(r.elapsed);requestAnimationFrame(frame);
 }
-function drawTrackCards(){$$('[data-track]').forEach(button=>{const track=+button.dataset.track;let points='';for(let i=0;i<=200;i++){const p=position(i/200,0,track);points+=(p.x/20)+','+(p.y/20)+' '}const s=position(0,0,track);button.insertAdjacentHTML('afterbegin','<svg viewBox="0 0 240 144" width="100%" height="95" aria-hidden="true"><polyline points="'+points+'" fill="none" stroke="currentColor" stroke-width="5" stroke-linejoin="round"/><circle cx="'+s.x/20+'" cy="'+s.y/20+'" r="4" fill="#F04718"/></svg>')})}
+function drawTrackCards(){$$('[data-track]').forEach(button=>{const track=+button.dataset.track;let points='';for(let i=0;i<=200;i++){const p=position(i/200,0,track);points+=(p.x/30)+','+(p.y/30)+' '}const s=position(0,0,track);button.insertAdjacentHTML('afterbegin','<svg viewBox="0 0 240 144" width="100%" height="95" aria-hidden="true"><polyline points="'+points+'" fill="none" stroke="currentColor" stroke-width="5" stroke-linejoin="round"/><circle cx="'+s.x/30+'" cy="'+s.y/30+'" r="4" fill="#F04718"/></svg>')})}
 drawTrackCards();refreshStats();drawHero();drawGarage();refreshAccount();
 if(location.protocol==='file:'){$('#downloadOffline').classList.add('hidden');$('#onlineGuest').innerHTML='<h2>Você está na versão offline.</h2><p class="muted">Para campeonatos e login, abra a versão online do Propulsão.</p><a class="primary" style="display:inline-block;padding:13px;border-radius:6px" href="https://oval-rush-racing-andre.drupaman.chatgpt.site" target="_blank" rel="noopener">Abrir versão online ↗</a>'}
 </script></body></html>

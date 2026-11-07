@@ -48,7 +48,7 @@ run(`for(const track of [0,1,2]){
  let error=Math.abs(info.fraction-i/160);error=Math.min(error,1-error);
  // Polyline normals can shift projection by up to 3 world pixels on the inside lane.
  if(error*mesh.total>3||Math.abs(info.distance-lane)>.3)throw Error('Geometry projection mismatch '+track);
- if(p.x<220||p.x>4580||p.y<220||p.y>2660)throw Error('Track exceeds world bounds');
+ if(p.x<220||p.x>WORLD.width-220||p.y<220||p.y>WORLD.height-220)throw Error('Track exceeds world bounds');
  }
  const d=createDriver(track);for(let i=1;i<=16000;i++){Object.assign(d,position(i/1600,0,track));updateProgress(d)}
  if(d.gates!==160||d.p!==10)throw Error('Ten laps not recorded on '+track);
@@ -110,6 +110,6 @@ current={userId:'u2',email:'two@test',fullName:'Piloto 2'};assert.equal((await p
 for(let i=3;i<=15;i++){current={userId:'u'+i,email:'pilot'+i+'@test'};assert.equal((await post({action:'join',cup:id})).status,200)}
 current={userId:'u16',email:'sixteen@test'};assert.equal((await post({action:'join',cup:id})).status,409);
 current={userId:'u1',email:'one@test'};assert.equal((await post({action:'start',cup:id})).status,200);clock+=8000;assert.equal((await post({action:'state',cup:id,round:1,x:2400,y:520,angle:0,progress:10})).status,400);clock+=65000;assert.equal((await post({action:'state',cup:id,round:1,x:2400,y:520,angle:0,progress:3})).status,200);assert.equal(sql.prepare('SELECT count(*) n FROM results').get().n,0);clock+=135000;assert.equal((await post({action:'state',cup:id,round:1,x:2400,y:520,angle:0,progress:10})).status,200);assert.equal((await post({action:'state',cup:id,round:1,x:2400,y:520,angle:0,progress:10})).status,200);
-assert.equal(sql.prepare('SELECT count(*) n FROM results').get().n,1);const state=await (await apiExports.GET(new Request('https://game.test/api/race?cup='+id))).json();assert.equal(state.players.length,15);assert.equal(state.results.length,1);assert.equal((await post({action:'state',cup:id,round:1,x:5000,y:520,angle:0,progress:10})).status,400);
+assert.equal(sql.prepare('SELECT count(*) n FROM results').get().n,1);const state=await (await apiExports.GET(new Request('https://game.test/api/race?cup='+id))).json();assert.equal(state.players.length,15);assert.equal(state.results.length,1);assert.equal((await post({action:'state',cup:id,round:1,x:8000,y:520,angle:0,progress:10})).status,400);
 current={userId:'u16',email:'sixteen@test'};assert.equal((await apiExports.GET(new Request('https://game.test/api/race?cup='+id))).status,403);assert.equal((await post({action:'join',cup:id})).status,409);
 console.log('PASS: login obrigatório, criação, convite, autorização, largada, validação de tempo, resultado único e leitura de placar.');})().catch(e=>{console.error(e);process.exitCode=1});

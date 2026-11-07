@@ -6,7 +6,7 @@ vm.createContext(sandbox);vm.runInContext(script,sandbox);const run=s=>vm.runInC
 
 
 run(`for(const track of [0,1,2])for(const side of [-1,1])for(const fraction of [0,.32,.5,.65,.8]){
- const d={...createDriver(track),...position(fraction,side*220,track)};containCar(d);
+ const d={...createDriver(track),...position(wrap(fraction-TRACKS[track].offset),side*220,track)};containCar(d);
  const q=trackInfo(d.x,d.y,track);if(Math.abs(q.distance)>140)throw Error('Wall failed '+side);
 }
 var jam=createDriver();jam.collisionPending=true;jam.start=0;
