@@ -5,7 +5,7 @@ const sandbox={console,atob,document:{addEventListener(){},querySelector:element
 vm.createContext(sandbox);vm.runInContext(script,sandbox);const run=s=>vm.runInContext(s,sandbox);
 
 
-run(`for(const track of [0,1,2])for(const side of [-1,1])for(const fraction of [0,.13,.32,.65,.91]){
+run(`for(const track of [0,1,2])for(const side of [-1,1])for(const fraction of [0,.32,.5,.65,.8]){
  const d={...createDriver(track),...position(fraction,side*220,track)};containCar(d);
  const q=trackInfo(d.x,d.y,track);if(Math.abs(q.distance)>140)throw Error('Wall failed '+side);
 }
