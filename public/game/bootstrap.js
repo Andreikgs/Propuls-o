@@ -5,6 +5,7 @@ function drawTrackCards() { $$('[data-track]').forEach(button => { const track =
 } const s = position(0, 0, track); button.insertAdjacentHTML('afterbegin', '<svg viewBox="0 0 240 144" width="100%" height="95" aria-hidden="true"><polyline points="' + points + '" fill="none" stroke="currentColor" stroke-width="5" stroke-linejoin="round"/><circle cx="' + s.x / 45 + '" cy="' + s.y / 45 + '" r="4" fill="#F04718"/></svg>'); }); }
 drawTrackCards();
 refreshStats();
+renderDriverSelection();
 drawHero();
 
 refreshAccount();

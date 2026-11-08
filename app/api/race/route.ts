@@ -26,8 +26,10 @@ export async function POST(req:Request){
  }
  const account=await db.prepare('SELECT name FROM accounts WHERE user=?').bind(uid).first<{name:string}>();
  if(!account)return json({error:'Defina seu nome no primeiro acesso à conta.'},403);
- const name=account.name,color='#53B800',driverId='drupa';
- if(['create','join'].includes(b.action)&&b.driverId!==driverId)return json({error:'Selecione um piloto disponível.'},400);
+ const roster:Record<string,string>={drupa:'#53B800',bozo:'#FF7900'};
+ const driverId=typeof b.driverId==='string'&&Object.hasOwn(roster,b.driverId)?b.driverId:'';
+ const name=account.name,color=roster[driverId];
+ if(['create','join'].includes(b.action)&&!driverId)return json({error:'Selecione um piloto disponível.'},400);
  if(b.action==='create'){
  const id=crypto.randomUUID().replaceAll('-','').slice(0,10).toUpperCase(),title=String(b.title||'').trim().slice(0,60);if(!title)return json({error:'Dê um nome ao campeonato.'},400);
  await db.batch([db.prepare('INSERT INTO cups(id,name,owner,rounds,created) VALUES(?,?,?,?,?)').bind(id,title,uid,[3,5,8].includes(b.rounds)?b.rounds:3,Date.now()),db.prepare('INSERT INTO members(cup,user,name,color,driver_id) VALUES(?,?,?,?,?)').bind(id,uid,name,color,driverId)]);return json({id});}

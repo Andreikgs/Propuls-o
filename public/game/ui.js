@@ -135,7 +135,7 @@ finally {
     polling = false;
 } }
 setInterval(pollRoom, 700);
-$('#drupaCard').onclick=()=>{profile.driverId='drupa';$('#drupaCard').setAttribute('aria-pressed','true')};
+for(const driver of DRIVERS)$('#'+driver.id+'Card').onclick=()=>selectDriver(driver.id);
 $('#confirmDriver').onclick=confirmDriver;
 $('#accountForm').onsubmit=async e=>{e.preventDefault();const button=e.submitter;button.disabled=true;try{await api({action:'register',name:$('#accountName').value});await refreshAccount();if(user&&!user.needsProfile)page('online',true)}catch(error){$('#accountStatus').textContent=error.message}finally{button.disabled=false}};
 $$('[data-track]').forEach(b => b.onclick = () => { selectedTrack = +b.dataset.track; $$('[data-track]').forEach(x => x.classList.toggle('selected', x === b)); });

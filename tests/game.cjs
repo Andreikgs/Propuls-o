@@ -1,6 +1,6 @@
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict'),path=require('node:path');
 const root=path.resolve(process.argv[2]),game=require('./load-game.cjs')(root),{html,script}=game;
-let now=0;const elements=new Map(),drawing=new Proxy({},{get:()=>()=>{}});function element(id){if(id==='#leaveNow')return null;if(!elements.has(id))elements.set(id,{id,style:{},dataset:{},value:id==='#difficulty'?'normal':'#dcff38',classList:{add(){},remove(){},toggle(){}},getContext:()=>drawing,innerHTML:'',textContent:'',setPointerCapture(){},setAttribute(){}});return elements.get(id)}
+let now=0;const elements=new Map(),drawing=new Proxy({},{get:()=>()=>{}});function element(id){if(id==='#leaveNow')return null;if(!elements.has(id))elements.set(id,{id,style:{setProperty(){}},dataset:{},value:id==='#difficulty'?'normal':'#dcff38',classList:{add(){},remove(){},toggle(){}},getContext:()=>drawing,innerHTML:'',textContent:'',setPointerCapture(){},setAttribute(){}});return elements.get(id)}
 const sandbox={console,atob,document:{addEventListener(){},querySelector:element,querySelectorAll:()=>[],createElement:()=>({width:0,height:0,getContext:()=>drawing})},localStorage:{getItem:()=>null,setItem(){}},location:{protocol:'file:'},window:{addEventListener(){},scrollTo(){}},navigator:{},performance:{now:()=>now},requestAnimationFrame(){},setTimeout(){},clearTimeout(){},setInterval(){}};
 vm.createContext(sandbox);game.load(sandbox);const run=s=>vm.runInContext(s,sandbox);
 
@@ -124,7 +124,8 @@ assert.equal((await post({action:'create',title:'Copa teste',driverId:'fake'})).
 let res=await post({action:'create',title:'Copa teste',rounds:3,name:'Nome forjado',color:'#ffffff'});const {id}=await res.json();assert.ok(id);
 const member=sql.prepare('SELECT name,color,driver_id FROM members WHERE user=?').get('u1');assert.equal(member.name,'Jogador Um');assert.equal(member.color,'#53B800');assert.equal(member.driver_id,'drupa');
 assert.equal((await post({action:'start',cup:id})).status,409);
-current={userId:'u2',email:'two@test',fullName:'Piloto 2'};await register('Jogador Dois');assert.equal((await post({action:'join',cup:id})).status,200);assert.equal((await post({action:'start',cup:id})).status,403);
+current={userId:'u2',email:'two@test',fullName:'Piloto 2'};await register('Jogador Dois');assert.equal((await post({action:'join',cup:id,driverId:'bozo',color:'#000000'})).status,200);assert.equal((await post({action:'start',cup:id})).status,403);
+const bozo=sql.prepare('SELECT color,driver_id FROM members WHERE user=?').get('u2');assert.equal(bozo.driver_id,'bozo');assert.equal(bozo.color,'#FF7900');
 for(let i=3;i<=15;i++){current={userId:'u'+i,email:'pilot'+i+'@test'};await register('Jogador '+i);assert.equal((await post({action:'join',cup:id})).status,200)}
 current={userId:'u16',email:'sixteen@test'};await register('Jogador 16');assert.equal((await post({action:'join',cup:id})).status,409);
 current={userId:'u1',email:'one@test'};assert.equal((await post({action:'start',cup:id})).status,200);clock+=8000;assert.equal((await post({action:'state',cup:id,round:1,x:2400,y:520,angle:0,progress:10})).status,400);clock+=65000;assert.equal((await post({action:'state',cup:id,round:1,x:2400,y:520,angle:0,progress:3})).status,200);assert.equal(sql.prepare('SELECT count(*) n FROM results').get().n,0);clock+=135000;assert.equal((await post({action:'state',cup:id,round:1,x:2400,y:520,angle:0,progress:10})).status,200);assert.equal((await post({action:'state',cup:id,round:1,x:2400,y:520,angle:0,progress:10})).status,200);

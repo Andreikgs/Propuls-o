@@ -12,6 +12,7 @@ Abra `Propulsao-Offline.html` em um navegador. Não precisa instalar dependênci
 - Daytona, Talladega e Bristol: traçados adaptados dos circuitos reais, em sentido anti-horário.
 - 3 dificuldades, 14 adversários IA, seleção de pilotos e recorde local.
 - Drupa: retrato e carro verde/preto nº 17 fornecidos pelo usuário. O carro escolhido é usado na corrida; não há edição de pintura na garagem.
+- Bozo: retrato laranja/preto e carro nº 07. A escolha fica salva no navegador; no campeonato, o carro acompanha o piloto registrado naquela sala.
 - Mapas, referências e limites da adaptação em [CIRCUITOS.md](CIRCUITOS.md).
 
 ## Pilotagem e câmera

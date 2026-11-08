@@ -5,7 +5,8 @@ function startRace(online = false) {
     raceAudio.unlock();
     keys = {};
     const track = online ? championshipTrack(room.cup.round) : selectedTrack;
-    race = { ...createDriver(track), active: true, driverId:profile.driverId, online, elapsed: 0, paused: false, done: false, start: online ? performance.now() + room.cup.start - room.now : performance.now() + 3500, remotes: [], bots: [], last: performance.now(), sent: 0, pending: false, round: online ? room.cup.round : 0 };
+    const driverId=online?selectedDriver(room.players.find(p=>p.user===user.id)?.driverId).id:profile.driverId;
+    race = { ...createDriver(track), active: true, driverId, online, elapsed: 0, paused: false, done: false, start: online ? performance.now() + room.cup.start - room.now : performance.now() + 3500, remotes: [], bots: [], last: performance.now(), sent: 0, pending: false, round: online ? room.cup.round : 0 };
     if (!online) {
         const level = $('#difficulty').value;
         for (let i = 0; i < GRID_SIZE - 1; i++) {
