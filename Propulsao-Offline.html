@@ -192,12 +192,12 @@ function car(ctx,x,y,a,color,n,scale=1,steering=0){
  ctx.restore();
 }
 function drawGarage(){const c=$('#carCanvas'),g=c.getContext('2d');g.clearRect(0,0,500,180);g.strokeStyle='#C0C3CF';for(let x=0;x<500;x+=25){g.beginPath();g.moveTo(x,0);g.lineTo(x,180);g.stroke()}car(g,250,90,0,$('#carColor').value,'27',4)}
-function previewPosition(p,lane,track=0){const q=position(p,lane*6,track);return{x:q.x/6,y:q.y/6,angle:q.angle}}
+function previewPosition(p,lane,track=0){const q=position(p,lane*9,track);return{x:q.x/9,y:q.y/9,angle:q.angle}}
 function circuit(g,track=0){g.drawImage(buildWorld(track),0,0,1200,720)}
 function drawHero(){const g=$('#heroCanvas').getContext('2d');g.save();g.translate(380,-90);g.scale(.95,.95);circuit(g);for(let i=0;i<10;i++){const p=previewPosition(.12+i*.035,(i%3-1)*23);car(g,p.x,p.y,p.angle,['#F04718','#F04718','#FEFEFE','#C0C3CF'][i%4],i+11,1.4)}g.restore()}
 
 const RACE_LAPS=10,GRID_SIZE=15,RACE_TIMEOUT=1800000;
-const WORLD={width:7200,height:4320,cx:3600,cy:2160,halfRoad:128};
+const WORLD={width:10800,height:6480,cx:5400,cy:3240,halfRoad:128};
 const wrap=n=>(n%1+1)%1,clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 
 const TRACKS=[
@@ -231,7 +231,7 @@ function trackMesh(track=0){
  [[-700,700],[-300,front],[0,front]]
  ];start[0]*=wide;curves=curves.map(c=>c.map(p=>[p[0]*wide,p[1]]));
  }
- start=start.map(v=>v*1.5);curves=curves.map(c=>c.map(p=>p.map(v=>v*1.5)));
+ start=start.map(v=>v*2.25);curves=curves.map(c=>c.map(p=>p.map(v=>v*2.25)));
  const points=[];let from=start;
  for(const [b,c,d] of curves){for(let j=0;j<100;j++){const t=j/100,u=1-t;points.push({x:WORLD.cx+u*u*u*from[0]+3*u*u*t*b[0]+3*u*t*t*c[0]+t*t*t*d[0],y:WORLD.cy+u*u*u*from[1]+3*u*u*t*b[1]+3*u*t*t*c[1]+t*t*t*d[1]})}from=d}
  let total=0;const segments=points.map((a,i)=>{const b=points[(i+1)%points.length],dx=b.x-a.x,dy=b.y-a.y,len=Math.hypot(dx,dy),seg={x:a.x,y:a.y,dx,dy,len,s:total,nx:-dy/len,ny:dx/len};total+=len;return seg});
@@ -275,7 +275,7 @@ function pitFraction(u,track=0){return wrap(PIT.entry+u-TRACKS[track].offset)}
 function pitOffset(f,track=0){
  const u=pitPhase(f,track),smooth=t=>t*t*(3-2*t);
  if(u>PIT.span)return null;
- const q=position(f,0,track),y=position(-TRACKS[track].offset,0,track).y-[700,800,420][track];
+ const q=position(f,0,track),y=position(-TRACKS[track].offset,0,track).y-[1050,1200,630][track];
  const lane=Math.min(-260,(y-q.y)/Math.cos(q.angle));
  if(u<.08)return -60+(lane+60)*smooth(u/.08);
  if(u>.20)return lane+(-60-lane)*smooth((u-.20)/.08);
@@ -444,15 +444,15 @@ function recoverDriver(r){
 let mapCache=null,mapTrack=-1;
 function buildWorld(track){
  if(mapCache&&mapTrack===track)return mapCache;
- const canvas=document.createElement('canvas');canvas.width=WORLD.width;canvas.height=WORLD.height;
- const g=canvas.getContext('2d');
+ const canvas=document.createElement('canvas');const mapScale=Math.min(1,7200/WORLD.width);canvas.width=Math.round(WORLD.width*mapScale);canvas.height=Math.round(WORLD.height*mapScale);
+ const g=canvas.getContext('2d');g.scale(mapScale,mapScale);
  const path=(lane)=>{g.beginPath();for(let i=0;i<=900;i++){const p=position(i/900,lane,track);if(i)g.lineTo(p.x,p.y);else g.moveTo(p.x,p.y)}g.closePath()};
  const band=(lane,width,color)=>{path(lane);g.strokeStyle=color;g.lineWidth=width;g.stroke()};
  // Deterministic scenery is baked once, never regenerated in the animation loop.
- g.fillStyle=['#bec3b5','#c9bda8','#aebcc0'][track];g.fillRect(0,0,7200,4320);
- for(let y=0;y<4320;y+=110){g.fillStyle='#27384809';g.fillRect(0,y,7200,55)}
- for(let i=0;i<14000;i++){g.fillStyle=i%2?'#ffffff15':'#27384812';g.fillRect((i*431)%7200,(i*787)%4320,2+i%3,1)}
- for(let i=0;i<420;i++){const x=(i*397)%7200,y=(i*179)%4320;if(trackInfo(x,y,track).distance>350){
+ g.fillStyle=['#bec3b5','#c9bda8','#aebcc0'][track];g.fillRect(0,0,WORLD.width,WORLD.height);
+ for(let y=0;y<WORLD.height;y+=110){g.fillStyle='#27384809';g.fillRect(0,y,WORLD.width,55)}
+ for(let i=0;i<14000;i++){g.fillStyle=i%2?'#ffffff15':'#27384812';g.fillRect((i*431)%WORLD.width,(i*787)%WORLD.height,2+i%3,1)}
+ for(let i=0;i<420;i++){const x=(i*397)%WORLD.width,y=(i*179)%WORLD.height;if(trackInfo(x,y,track).distance>350){
  g.fillStyle='#00000025';g.beginPath();g.ellipse(x+12,y+13,19,13,0,0,TAU);g.fill();
  for(let j=0;j<3;j++){g.fillStyle=['#46584f','#58695b','#71806a'][j];g.beginPath();g.arc(x+j*3,y-j*4,16-j*3+i%7,0,TAU);g.fill()}
  }}
@@ -524,7 +524,7 @@ function buildWorld(track){
 function cameraFor(r){return{x:r.x-600,y:r.y-360}}
 function renderRace(r){
  const g=$('#raceCanvas').getContext('2d'),map=buildWorld(r.track),camera=cameraFor(r);g.fillStyle='#F5F3ED';g.fillRect(0,0,1200,720);
- g.save();g.translate(-camera.x,-camera.y);g.drawImage(map,0,0);
+ g.save();g.translate(-camera.x,-camera.y);g.drawImage(map,0,0,WORLD.width,WORLD.height);
  g.strokeStyle='#00000088';g.lineWidth=3;for(const skid of r.skids){g.save();g.translate(skid.x,skid.y);g.rotate(skid.a);g.beginPath();g.moveTo(-16,-12);g.lineTo(-26,-12);g.moveTo(-16,12);g.lineTo(-26,12);g.stroke();g.restore()}
  for(const b of r.bots)car(g,b.x,b.y,b.angle,b.color,b.n,1.5,b.steer*.32)
  for(const b of r.remotes){if(b.updated&&b.x){car(g,b.x,b.y,b.angle,b.color,'•',1.5);g.fillStyle='#FEFEFE';g.font='12px Arial';g.textAlign='center';g.fillText(b.name,b.x,b.y-35)}}
@@ -656,7 +656,7 @@ function frame(now){
  const place=racePosition(r);
  $('#hudPos').textContent=place+' / '+(r.online?(room?.players.length||1):GRID_SIZE);$('#hudLap').textContent=Math.min(RACE_LAPS,Math.floor(r.p)+1)+' / '+RACE_LAPS;$('#hudSpeed').textContent=Math.round(r.speed*1.05);$('#hudTime').textContent=fmt(r.elapsed);requestAnimationFrame(frame);
 }
-function drawTrackCards(){$$('[data-track]').forEach(button=>{const track=+button.dataset.track;let points='';for(let i=0;i<=200;i++){const p=position(i/200,0,track);points+=(p.x/30)+','+(p.y/30)+' '}const s=position(0,0,track);button.insertAdjacentHTML('afterbegin','<svg viewBox="0 0 240 144" width="100%" height="95" aria-hidden="true"><polyline points="'+points+'" fill="none" stroke="currentColor" stroke-width="5" stroke-linejoin="round"/><circle cx="'+s.x/30+'" cy="'+s.y/30+'" r="4" fill="#F04718"/></svg>')})}
+function drawTrackCards(){$$('[data-track]').forEach(button=>{const track=+button.dataset.track;let points='';for(let i=0;i<=200;i++){const p=position(i/200,0,track);points+=(p.x/45)+','+(p.y/45)+' '}const s=position(0,0,track);button.insertAdjacentHTML('afterbegin','<svg viewBox="0 0 240 144" width="100%" height="95" aria-hidden="true"><polyline points="'+points+'" fill="none" stroke="currentColor" stroke-width="5" stroke-linejoin="round"/><circle cx="'+s.x/45+'" cy="'+s.y/45+'" r="4" fill="#F04718"/></svg>')})}
 drawTrackCards();refreshStats();drawHero();drawGarage();refreshAccount();
 if(location.protocol==='file:'){$('#downloadOffline').classList.add('hidden');$('#onlineGuest').innerHTML='<h2>Você está na versão offline.</h2><p class="muted">Para campeonatos e login, abra a versão online do Propulsão.</p><a class="primary" style="display:inline-block;padding:13px;border-radius:6px" href="https://oval-rush-racing-andre.drupaman.chatgpt.site" target="_blank" rel="noopener">Abrir versão online ↗</a>'}
 </script></body></html>

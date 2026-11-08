@@ -14,7 +14,7 @@ Abra `Propulsao-Offline.html` em um navegador. Não precisa instalar dependênci
 - Mapas, referências e limites da adaptação em [CIRCUITOS.md](CIRCUITOS.md).
 
 ## Pilotagem e câmera
-Mapa de 7200 × 4320 unidades, com os traçados ampliados em 50% e carros na escala anterior. Carro fixo no centro da câmera; minimapa mostra o circuito completo. A física inclui esterçamento progressivo, inércia lateral, limite de aderência em curvas, freios, grama com menor tração e colisão com o muro externo. As voltas exigem 16 setores em ordem. Os recordes desta física usam armazenamento separado da versão assistida.
+Mapa de 10800 × 6480 unidades, com os traçados 50% mais longos que a versão de 7200 × 4320 e carros na mesma escala. O cenário estático usa resolução limitada para evitar aumentar a memória na proporção da área do mapa. Carro fixo no centro da câmera; minimapa mostra o circuito completo. A física inclui esterçamento progressivo, inércia lateral, limite de aderência em curvas, freios, grama com menor tração e colisão com o muro externo. As voltas exigem 16 setores em ordem. Os recordes desta física usam armazenamento separado da versão assistida.
 
 ## Colisões contra a IA
 Os 15 carros usam posição e velocidade físicas. Contato por carroceria orientada transfere impulso aos dois carros, com atrito e rotação em impactos fora do centro. A IA volta a pilotar após o empurrão; engavetamentos afetam os demais adversários. O muro considera o tamanho do carro. Carros em recuperação ficam temporariamente fora das colisões.

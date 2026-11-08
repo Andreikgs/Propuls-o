@@ -34,7 +34,7 @@ export async function POST(req:Request){
  const start=Date.now()+8000;await db.batch([db.prepare('UPDATE cups SET round=round+1,start=? WHERE id=? AND round=?').bind(start,id,cup.round),db.prepare('UPDATE members SET progress=0,x=0,y=0,updated=0 WHERE cup=?').bind(id)]);return json({ok:true});}
  if(b.action==='state'){
  if(b.round!==cup.round||Date.now()<cup.start||!cup.start)return json({error:'Etapa não está ativa.'},409);
- if(![b.x,b.y,b.angle,b.progress].every(Number.isFinite)||b.x<0||b.x>7200||b.y<0||b.y>4320||b.progress<0||b.progress>10.1)return json({error:'Estado inválido.'},400);
+ if(![b.x,b.y,b.angle,b.progress].every(Number.isFinite)||b.x<0||b.x>10800||b.y<0||b.y>6480||b.progress<0||b.progress>10.1)return json({error:'Estado inválido.'},400);
  const elapsed=Date.now()-cup.start;if(b.progress>elapsed/18000+0.15)return json({error:'Progresso inválido.'},400);
  await db.prepare('UPDATE members SET x=?,y=?,angle=?,progress=?,updated=? WHERE cup=? AND user=?').bind(b.x,b.y,b.angle,b.progress,Date.now(),id,uid).run();
  if(b.progress>=10&&elapsed>=180000&&elapsed<=1800000)await db.prepare('INSERT OR IGNORE INTO results(cup,user,round,elapsed) VALUES(?,?,?,?)').bind(id,uid,cup.round,elapsed).run();return json({ok:true});}
