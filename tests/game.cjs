@@ -1,8 +1,8 @@
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict'),path=require('node:path');
-const root=path.resolve(process.argv[2]),html=fs.readFileSync(path.join(root,'public/game.html'),'utf8'),script=html.match(/<script>([\s\S]*)<\/script>/)[1];
+const root=path.resolve(process.argv[2]),game=require('./load-game.cjs')(root),{html,script}=game;
 let now=0;const elements=new Map(),drawing=new Proxy({},{get:()=>()=>{}});function element(id){if(id==='#leaveNow')return null;if(!elements.has(id))elements.set(id,{id,style:{},dataset:{},value:id==='#difficulty'?'normal':'#dcff38',classList:{add(){},remove(){},toggle(){}},getContext:()=>drawing,innerHTML:'',textContent:'',setPointerCapture(){},setAttribute(){}});return elements.get(id)}
 const sandbox={console,atob,document:{addEventListener(){},querySelector:element,querySelectorAll:()=>[],createElement:()=>({width:0,height:0,getContext:()=>drawing})},localStorage:{getItem:()=>null,setItem(){}},location:{protocol:'file:'},window:{addEventListener(){},scrollTo(){}},navigator:{},performance:{now:()=>now},requestAnimationFrame(){},setTimeout(){},clearTimeout(){},setInterval(){}};
-vm.createContext(sandbox);vm.runInContext(script,sandbox);const run=s=>vm.runInContext(s,sandbox);
+vm.createContext(sandbox);game.load(sandbox);const run=s=>vm.runInContext(s,sandbox);
 
 run('var driver=createDriver();for(let i=0;i<360;i++)stepDriver(driver,{throttle:true},1/120)');
 assert.ok(run('driver.x')>run('position(0).x'));assert.ok(Math.abs(run('(driver.y-position(0).y)*Math.cos(position(0).angle)-(driver.x-position(0).x)*Math.sin(position(0).angle)'))<.001);assert.ok(Math.abs(run('driver.angle-position(0).angle'))<.001,'No auto-steering');
@@ -21,7 +21,7 @@ run('var skip=createDriver();Object.assign(skip,position(.4));updateProgress(ski
 run('var camera=cameraFor(driver)');assert.equal(run('driver.x-camera.x'),600);assert.equal(run('driver.y-camera.y'),360);
 run('checkpoint.done=false;checkpoint.start=0;checkpoint.gates=19;recoverDriver(checkpoint)');assert.equal(run('checkpoint.p'),19/16);assert.equal(run('checkpoint.recovery'),3);
 run('startRace();race.bots=[];race.start=0;keys.arrowup=true');for(let i=0;i<20;i++){now+=50;run('frame('+now+')')}const before=run('race.x');run('togglePause()');now+=1000;run('frame('+now+')');assert.equal(run('race.x'),before);run('togglePause();race.gates=160;race.p=10;race.elapsed=600000;finish()');assert.equal(run('race.done'),true);assert.equal(run('stats.count'),1);
-assert.equal(fs.readFileSync(path.join(root,'Oval-Rush-Offline.html'),'utf8'),html,'Offline export matches hosted game');
+// Offline parity is checked against every source by build-offline --check.
 console.log('PASS: manual steering, inertia, brakes, offroad, barrier, sequential lap gates, wrong-way, shortcuts, centered camera, recovery, pause and finish.');
 
 run(`for(const track of [0,1,2]){
@@ -95,10 +95,16 @@ for(const [name,sample] of Object.entries(assets)){
  assert.ok(peak<=.851&&peak>.8);assert.ok(energy/(pcm.length/2)>.01);
 }
 assert.ok(!script.includes('createOscillator('),'Use recorded samples, not synthesized oscillators');
-assert.equal(fs.readFileSync(path.join(root,'Propulsao-Offline.html'),'utf8'),html);
+assert.equal(fs.readFileSync(path.join(root,'Propulsao-Offline.html'),'utf8'),fs.readFileSync(path.join(root,'Oval-Rush-Offline.html'),'utf8'));
 assert.ok(html.includes('PROPUL<em>SÃO</em>'));
 assert.ok(html.includes('Mike Koenig / SoundBible'));
-console.log('PASS: recorded PCM integrity, embedded offline samples, naming and audio attribution.');
+const offlineContext=vm.createContext({...sandbox});
+const offlineHtml=fs.readFileSync(path.join(root,'Propulsao-Offline.html'),'utf8');
+assert.ok(!/<script src=/.test(offlineHtml),'Offline needs no external scripts');
+for(const match of offlineHtml.matchAll(/<script>([\s\S]*?)<\/script>/g))vm.runInContext(match[1],offlineContext);
+assert.equal(vm.runInContext('trackMesh(0).total',offlineContext),run('trackMesh(0).total'));
+vm.runInContext('var offlineDriver=createDriver();stepDriver(offlineDriver,{throttle:true},1/120);if(!(offlineDriver.speed>0))throw Error("Offline driving failed")',offlineContext);
+console.log('PASS: recorded PCM integrity, standalone offline startup/driving, naming and audio attribution.');
 
 const {DatabaseSync}=require('node:sqlite'),sql=new DatabaseSync(':memory:');sql.exec(fs.readFileSync(path.join(root,'drizzle/0000_racing.sql'),'utf8'));
 const db={prepare(q){return{bind(...args){const st=sql.prepare(q);return{first:async()=>st.get(...args)||null,all:async()=>({results:st.all(...args)}),run:async()=>st.run(...args)}}}},batch:async jobs=>Promise.all(jobs.map(j=>j.run()))};

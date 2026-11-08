@@ -58,3 +58,11 @@ Desgaste por distância (9% por volta de base), com acréscimo por derrapagem e 
 B ou botão Boxes solicita/cancela a parada. O pit lane é uma via separada no interior do circuito, com acesso PIT IN antes da chegada e retorno PIT OUT depois dos boxes. B apenas solicita/cancela a orientação: é preciso dirigir pela entrada, parar no box por 4 segundos e percorrer a saída. Há limitador automático a aproximadamente 80 km/h. A via tem suas próprias barreiras e mantém a contagem dos checkpoints durante a passagem. Durante o atendimento, o carro fica sem colisão com a IA para evitar bloqueio dos boxes. A pausa congela o serviço; o reset cancela o atendimento e não repara pneus. Jogadores online usam o mesmo desgaste e atendimento local; a sincronização online continua sem colisões entre jogadores.
 
 Os boxes usam uma reta de serviço dentro do circuito, com 15 garagens alinhadas, área de apoio e acessos graduais separados da faixa de corrida. A geometria acompanha a posição real da reta dianteira em cada traçado, independentemente da linha de chegada.
+
+## Organização do jogo
+
+O código editável está em public/game/: tracks.js (geometria), pits.js (boxes e pneus), physics.js (movimento, colisões e classificação), rendering.js (Canvas), ui.js (perfil e campeonatos), audio.js e audio-samples.js (áudio), race.js (ciclo da corrida) e bootstrap.js (inicialização).
+
+São scripts clássicos com escopo global compartilhado, carregados com defer na ordem declarada em public/game.html. Funções de desenho e física são declaradas antes da interface; bootstrap.js inicia a página por último. Ao mover declarações, preserve essa ordem e execute os testes, que carregam os arquivos individualmente. O Graphify pode indexar as definições JavaScript; a resolução de ligações entre scripts globais depende do indexador.
+
+Não edite Propulsao-Offline.html nem Oval-Rush-Offline.html diretamente. Execute node scripts/build-offline.mjs para regenerá-los, ou node scripts/build-offline.mjs --check para conferir sincronização. O comando de desenvolvimento/build também gera os arquivos automaticamente. O áudio fica incorporado, permitindo jogar offline sem downloads.
