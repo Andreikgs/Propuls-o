@@ -90,10 +90,14 @@ function drawGarage() { const c = $('#carCanvas'), g = c.getContext('2d'); g.cle
 } car(g, 250, 90, 0, $('#carColor').value, '27', 4); }
 function previewPosition(p, lane, track = 0) { const q = position(p, lane * 9, track); return { x: q.x / 9, y: q.y / 9, angle: q.angle }; }
 function circuit(g, track = 0) { g.drawImage(buildWorld(track), 0, 0, 1200, 720); }
-function drawHero() { const g = $('#heroCanvas').getContext('2d'); g.save(); g.translate(380, -90); g.scale(.95, .95); circuit(g); for (let i = 0; i < 10; i++) {
-    const p = previewPosition(.12 + i * .035, (i % 3 - 1) * 23);
-    car(g, p.x, p.y, p.angle, ['#F04718', '#F04718', '#FEFEFE', '#C0C3CF'][i % 4], i + 11, 1.4);
-} g.restore(); }
+function drawHero() {
+ const g=$('#heroCanvas').getContext('2d');g.clearRect(0,0,1200,800);
+ g.save();g.translate(690,390);g.rotate(-.48);
+ g.strokeStyle='#C0C3CF25';g.lineWidth=2;g.strokeRect(-390,-190,780,380);
+ g.strokeStyle='#F5F3ED66';g.lineWidth=5;
+ for(const side of [-1,1]){g.beginPath();g.moveTo(side*365,-150);g.lineTo(side*365,-185);g.lineTo(side*315,-185);g.stroke();g.beginPath();g.moveTo(side*365,150);g.lineTo(side*365,185);g.lineTo(side*315,185);g.stroke();}
+ car(g,0,0,0,profile.color,'27',13);g.restore();
+}
 let mapCache = null, mapTrack = -1;
 function buildWorld(track) {
     if (mapCache && mapTrack === track)

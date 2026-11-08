@@ -29,7 +29,7 @@ catch { } }
 function toast(text) { $('#toast').textContent = text; $('#toast').classList.remove('hidden'); clearTimeout(toast.timer); toast.timer = setTimeout(() => $('#toast').classList.add('hidden'), 4500); }
 const fmt = ms => { const s = Math.max(0, ms) / 1000; return String(Math.floor(s / 60)).padStart(2, '0') + ':' + (s % 60).toFixed(2).padStart(5, '0'); };
 function refreshStats() { $('#bestTime').textContent = stats.best ? fmt(stats.best) : '—'; $('#raceCount').textContent = String(stats.count).padStart(2, '0'); }
-function page(id) { view = id; $$('.view').forEach(e => e.classList.toggle('hidden', e.id !== id)); $$('.nav button').forEach(e => e.classList.toggle('active', e.dataset.page === id)); $('#breadcrumb').textContent = '/  ' + ({ home: 'Central de corridas', offline: 'Single player', online: 'Campeonatos', room: 'Paddock', garage: 'Minha garagem', login: 'Login', credits: 'Créditos de áudio' }[id]); if (id === 'online')
+function page(id) { if(id==='home')drawHero(); view = id; $$('.view').forEach(e => e.classList.toggle('hidden', e.id !== id)); $$('.nav button').forEach(e => e.classList.toggle('active', e.dataset.page === id)); $('#breadcrumb').textContent = '/  ' + ({ home: 'Paddock', offline: 'Single player', online: 'Campeonatos', room: 'Paddock', garage: 'Minha garagem', login: 'Login', credits: 'Créditos de áudio' }[id]); if (id === 'online')
     refreshAccount(); if (id === 'garage')
     drawGarage(); window.scrollTo(0, 0); }
 $$('[data-page]').forEach(b => b.onclick = () => page(b.dataset.page));
