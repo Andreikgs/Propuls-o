@@ -6,7 +6,7 @@ function drawTrackCards() { $$('[data-track]').forEach(button => { const track =
 drawTrackCards();
 refreshStats();
 drawHero();
-drawGarage();
+
 refreshAccount();
 if (location.protocol === 'file:') {
     $('#downloadOffline').classList.add('hidden');

@@ -8,7 +8,7 @@ $('#themeToggle').onclick = () => { const theme = $('html').dataset.theme === 'd
 catch { } $('meta[name="theme-color"]').setAttribute('content', theme === 'dark' ? '#000000' : '#F5F3ED'); syncThemeButton(); };
 syncThemeButton();
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-let profile = { name: 'Piloto', color: '#F04718' }, stats = { count: 0, best: 0 };
+let profile = { name: 'Visitante', color: '#53B800', driverId: 'drupa' }, stats = { count: 0, best: 0 };
 try {
     profile = { ...profile, ...JSON.parse(localStorage.getItem('oval-profile') || '{}') };
     stats = { ...stats, ...JSON.parse(localStorage.getItem('oval-stats-v2') || '{}') };
@@ -18,8 +18,7 @@ if (stats.laps !== 10) {
     stats.best = 0;
     stats.laps = 10;
 }
-if (profile.color === '#dcff38')
-    profile.color = '#F04718';
+profile.driverId=selectedDriver(profile.driverId).id;profile.color=selectedDriver(profile.driverId).color;profile.name='Visitante';
 let user = null, cups = [], room = null, selectedTrack = 0, view = 'home', race = null, keys = {}, polling = false, lastSeenRound = 0;
 function save() { try {
     localStorage.setItem('oval-profile', JSON.stringify(profile));
@@ -29,9 +28,8 @@ catch { } }
 function toast(text) { $('#toast').textContent = text; $('#toast').classList.remove('hidden'); clearTimeout(toast.timer); toast.timer = setTimeout(() => $('#toast').classList.add('hidden'), 4500); }
 const fmt = ms => { const s = Math.max(0, ms) / 1000; return String(Math.floor(s / 60)).padStart(2, '0') + ':' + (s % 60).toFixed(2).padStart(5, '0'); };
 function refreshStats() { $('#bestTime').textContent = stats.best ? fmt(stats.best) : '—'; $('#raceCount').textContent = String(stats.count).padStart(2, '0'); }
-function page(id) { if(id==='home')drawHero(); view = id; $$('.view').forEach(e => e.classList.toggle('hidden', e.id !== id)); $$('.nav button').forEach(e => e.classList.toggle('active', e.dataset.page === id)); $('#breadcrumb').textContent = '/  ' + ({ home: 'Paddock', offline: 'Single player', online: 'Campeonatos', room: 'Paddock', garage: 'Minha garagem', login: 'Login', credits: 'Créditos de áudio' }[id]); if (id === 'online')
-    refreshAccount(); if (id === 'garage')
-    drawGarage(); window.scrollTo(0, 0); }
+function page(id,skipSelection=false) { if(id==='online'&&!skipSelection){chooseDriver('online');return} if(id==='drivers'&&!skipSelection)driverTarget='offline'; if(id==='home')drawHero(); view = id; $$('.view').forEach(e => e.classList.toggle('hidden', e.id !== id)); $$('.nav button').forEach(e => e.classList.toggle('active', e.dataset.page === id)); $('#breadcrumb').textContent = '/  ' + ({ home: 'Paddock', offline: 'Single player', online: 'Campeonatos', room: 'Paddock', drivers: 'Pilotos', login: 'Login', credits: 'Créditos de áudio' }[id]); if (id === 'online')
+    refreshAccount();  window.scrollTo(0, 0); }
 $$('[data-page]').forEach(b => b.onclick = () => page(b.dataset.page));
 $('.logo').onclick = e => { e.preventDefault(); page('home'); };
 $('#heroPlay').onclick = () => page('offline');
@@ -46,7 +44,9 @@ catch {
 async function refreshAccount() { if (location.protocol === 'file:')
     return; try {
     const d = await api();
-    user = d.user;
+    user = d.user;profile.name=user?.name||'Visitante';
+    $('#accountSignin').classList.toggle('hidden',!!user);$('#accountForm').classList.toggle('hidden',!user||!user.needsProfile);$('#accountStatus').textContent=user&&!user.needsProfile?'Conta: '+user.name:'';
+    if(user?.needsProfile){$('#accountName').value=d.suggestedName||'';page('login',true);}
     cups = d.cups || [];
     $('#onlineGuest').classList.toggle('hidden', !!user);
     $('#onlineMember').classList.toggle('hidden', !user);
@@ -59,7 +59,7 @@ catch (e) {
     if (view === 'online')
         toast(e.message);
 } }
-async function action(body) { return api({ ...body, name: profile.name, color: profile.color }); }
+async function action(body) { return api({ ...body, driverId: profile.driverId }); }
 $('#createForm').onsubmit = async (e) => { e.preventDefault(); const b = e.submitter; b.disabled = true; try {
     const d = await action({ action: 'create', title: $('#cupName').value, rounds: +$('#rounds').value });
     await openRoom(d.id);
@@ -135,8 +135,7 @@ finally {
     polling = false;
 } }
 setInterval(pollRoom, 700);
-$('#pilotName').value = profile.name;
-$('#carColor').value = profile.color;
-$('#garageForm').onsubmit = e => { e.preventDefault(); profile = { name: $('#pilotName').value.trim() || 'Piloto', color: $('#carColor').value }; save(); drawGarage(); toast('Seu carro está pronto para a pista.'); };
-$('#carColor').oninput = drawGarage;
+$('#drupaCard').onclick=()=>{profile.driverId='drupa';$('#drupaCard').setAttribute('aria-pressed','true')};
+$('#confirmDriver').onclick=confirmDriver;
+$('#accountForm').onsubmit=async e=>{e.preventDefault();const button=e.submitter;button.disabled=true;try{await api({action:'register',name:$('#accountName').value});await refreshAccount();if(user&&!user.needsProfile)page('online',true)}catch(error){$('#accountStatus').textContent=error.message}finally{button.disabled=false}};
 $$('[data-track]').forEach(b => b.onclick = () => { selectedTrack = +b.dataset.track; $$('[data-track]').forEach(x => x.classList.toggle('selected', x === b)); });

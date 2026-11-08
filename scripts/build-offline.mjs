@@ -4,8 +4,9 @@ import { resolve } from 'node:path';
 const root = fileURLToPath(new URL('../', import.meta.url));
 const html = readFileSync(resolve(root, 'public/game.html'), 'utf8');
 // Use the hosted page as the single source of script order. Offline needs no server.
+const assetData = relative => "data:image/webp;base64," + readFileSync(resolve(root,"public",relative)).toString("base64");
 const offline = html.replace('<link rel="stylesheet" href="menu.css">', () => '<style>' + readFileSync(resolve(root, 'public/menu.css'), 'utf8') + '</style>').replace(/<script src="(game\/[^"]+\.js)" defer><\/script>/g,
-  (_, relative) => '<script>\n' + readFileSync(resolve(root, 'public', relative), 'utf8').replace(/<\/script/gi, '<\\/script') + '\n</script>');
+  (_, relative) => '<script>\n' + readFileSync(resolve(root, 'public', relative), 'utf8').replace(/<\/script/gi, '<\\/script') + '\n</script>').replace(/assets\/drivers\/[a-z-]+\.webp/g, assetData);
 for (const file of ['Propulsao-Offline.html', 'Oval-Rush-Offline.html', 'public/Propulsao-Offline.html']) {
   const target = resolve(root, file);
   if (process.argv.includes('--check')) {

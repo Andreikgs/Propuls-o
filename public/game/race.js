@@ -5,7 +5,7 @@ function startRace(online = false) {
     raceAudio.unlock();
     keys = {};
     const track = online ? championshipTrack(room.cup.round) : selectedTrack;
-    race = { ...createDriver(track), active: true, online, elapsed: 0, paused: false, done: false, start: online ? performance.now() + room.cup.start - room.now : performance.now() + 3500, remotes: [], bots: [], last: performance.now(), sent: 0, pending: false, round: online ? room.cup.round : 0 };
+    race = { ...createDriver(track), active: true, driverId:profile.driverId, online, elapsed: 0, paused: false, done: false, start: online ? performance.now() + room.cup.start - room.now : performance.now() + 3500, remotes: [], bots: [], last: performance.now(), sent: 0, pending: false, round: online ? room.cup.round : 0 };
     if (!online) {
         const level = $('#difficulty').value;
         for (let i = 0; i < GRID_SIZE - 1; i++) {
@@ -20,7 +20,7 @@ function startRace(online = false) {
     $('#overlay').classList.remove('hidden');
     requestAnimationFrame(frame);
 }
-$('#startOffline').onclick = () => startRace();
+$('#startOffline').onclick = () => chooseDriver('race');
 function togglePause() { if (!race || race.online || race.done || race.exitPrompt || performance.now() < race.start)
     return; race.paused = !race.paused; keys = {}; if (race.paused)
     raceAudio.silence();

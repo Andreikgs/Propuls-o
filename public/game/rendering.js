@@ -82,12 +82,6 @@ function car(ctx, x, y, a, color, n, scale = 1, steering = 0) {
     ctx.restore();
     ctx.restore();
 }
-function drawGarage() { const c = $('#carCanvas'), g = c.getContext('2d'); g.clearRect(0, 0, 500, 180); g.strokeStyle = '#C0C3CF'; for (let x = 0; x < 500; x += 25) {
-    g.beginPath();
-    g.moveTo(x, 0);
-    g.lineTo(x, 180);
-    g.stroke();
-} car(g, 250, 90, 0, $('#carColor').value, '27', 4); }
 function previewPosition(p, lane, track = 0) { const q = position(p, lane * 9, track); return { x: q.x / 9, y: q.y / 9, angle: q.angle }; }
 function circuit(g, track = 0) { g.drawImage(buildWorld(track), 0, 0, 1200, 720); }
 function drawHero() {
@@ -96,7 +90,7 @@ function drawHero() {
  g.strokeStyle='#C0C3CF25';g.lineWidth=2;g.strokeRect(-390,-190,780,380);
  g.strokeStyle='#F5F3ED66';g.lineWidth=5;
  for(const side of [-1,1]){g.beginPath();g.moveTo(side*365,-150);g.lineTo(side*365,-185);g.lineTo(side*315,-185);g.stroke();g.beginPath();g.moveTo(side*365,150);g.lineTo(side*365,185);g.lineTo(side*315,185);g.stroke();}
- car(g,0,0,0,profile.color,'27',13);g.restore();
+ drawDriverCar(g,0,0,0,profile.driverId,13);g.restore();
 }
 let mapCache = null, mapTrack = -1;
 function buildWorld(track) {
@@ -407,14 +401,14 @@ function renderRace(r) {
         car(g, b.x, b.y, b.angle, b.color, b.n, 1.5, b.steer * .32);
     for (const b of r.remotes) {
         if (b.updated && b.x) {
-            car(g, b.x, b.y, b.angle, b.color, '•', 1.5);
+            drawDriverCar(g, b.x, b.y, b.angle, b.driverId, 1.5);
             g.fillStyle = '#FEFEFE';
             g.font = '12px Arial';
             g.textAlign = 'center';
             g.fillText(b.name, b.x, b.y - 35);
         }
     }
-    car(g, r.x, r.y, r.angle, profile.color, 27, 1.5, r.steer * .32);
+    drawDriverCar(g, r.x, r.y, r.angle, r.driverId, 1.5, r.steer * .32);
     g.restore();
     // The camera translation always puts the player's world position at the viewport center.
     g.save();

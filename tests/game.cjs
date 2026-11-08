@@ -106,15 +106,27 @@ assert.equal(vm.runInContext('trackMesh(0).total',offlineContext),run('trackMesh
 vm.runInContext('var offlineDriver=createDriver();stepDriver(offlineDriver,{throttle:true},1/120);if(!(offlineDriver.speed>0))throw Error("Offline driving failed")',offlineContext);
 console.log('PASS: recorded PCM integrity, standalone offline startup/driving, naming and audio attribution.');
 
-const {DatabaseSync}=require('node:sqlite'),sql=new DatabaseSync(':memory:');sql.exec(fs.readFileSync(path.join(root,'drizzle/0000_racing.sql'),'utf8'));
+const {DatabaseSync}=require('node:sqlite'),sql=new DatabaseSync(':memory:');
+for(const migration of fs.readdirSync(path.join(root,'drizzle')).filter(f=>f.endsWith('.sql')).sort())sql.exec(fs.readFileSync(path.join(root,'drizzle',migration),'utf8'));
 const db={prepare(q){return{bind(...args){const st=sql.prepare(q);return{first:async()=>st.get(...args)||null,all:async()=>({results:st.all(...args)}),run:async()=>st.run(...args)}}}},batch:async jobs=>Promise.all(jobs.map(j=>j.run()))};
 let current=null,clock=1000000;const ts=require(path.join(root,'node_modules/typescript'));const source=fs.readFileSync(path.join(root,'app/api/race/route.ts'),'utf8');const js=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;const apiExports={};const apiCtx={exports:apiExports,require(n){if(n==='cloudflare:workers')return {env:{DB:db}};if(n==='../../chatgpt-auth')return {getChatGPTUser:async()=>current};throw Error(n)},Response,URL,crypto:require('node:crypto').webcrypto,Date:class extends Date{static now(){return clock}}};
 vm.runInNewContext(js,apiCtx);
-async function post(body){return apiExports.POST(new Request('https://game.test/api/race',{method:'POST',headers:{Origin:'https://game.test','Content-Type':'application/json'},body:JSON.stringify(body)}))}
-(async()=>{assert.equal((await post({action:'create'})).status,401);current={userId:'u1',email:'one@test',fullName:'Piloto 1'};let res=await post({action:'create',title:'Copa teste',rounds:3});const {id}=await res.json();assert.ok(id);assert.equal((await post({action:'start',cup:id})).status,409);
-current={userId:'u2',email:'two@test',fullName:'Piloto 2'};assert.equal((await post({action:'join',cup:id})).status,200);assert.equal((await post({action:'start',cup:id})).status,403);
-for(let i=3;i<=15;i++){current={userId:'u'+i,email:'pilot'+i+'@test'};assert.equal((await post({action:'join',cup:id})).status,200)}
-current={userId:'u16',email:'sixteen@test'};assert.equal((await post({action:'join',cup:id})).status,409);
+async function post(body){return apiExports.POST(new Request('https://game.test/api/race',{method:'POST',headers:{Origin:'https://game.test','Content-Type':'application/json'},body:JSON.stringify({driverId:'drupa',...body})}))}
+async function register(name){assert.equal((await post({action:'register',name})).status,200)}
+(async()=>{assert.equal((await post({action:'create'})).status,401);current={userId:'u1',email:'one@test',fullName:'Piloto 1'};
+const account=async()=> (await apiExports.GET(new Request('https://game.test/api/race'))).json();
+assert.equal((await account()).user.needsProfile,true);
+assert.equal((await post({action:'create',title:'Copa teste'})).status,403);
+assert.equal((await post({action:'register',name:'x'})).status,400);
+await register('Jogador Um');assert.equal((await account()).user.name,'Jogador Um');assert.equal((await account()).user.needsProfile,false);
+assert.equal((await post({action:'register',name:'Outro nome'})).status,409);
+assert.equal((await post({action:'create',title:'Copa teste',driverId:'fake'})).status,400);
+let res=await post({action:'create',title:'Copa teste',rounds:3,name:'Nome forjado',color:'#ffffff'});const {id}=await res.json();assert.ok(id);
+const member=sql.prepare('SELECT name,color,driver_id FROM members WHERE user=?').get('u1');assert.equal(member.name,'Jogador Um');assert.equal(member.color,'#53B800');assert.equal(member.driver_id,'drupa');
+assert.equal((await post({action:'start',cup:id})).status,409);
+current={userId:'u2',email:'two@test',fullName:'Piloto 2'};await register('Jogador Dois');assert.equal((await post({action:'join',cup:id})).status,200);assert.equal((await post({action:'start',cup:id})).status,403);
+for(let i=3;i<=15;i++){current={userId:'u'+i,email:'pilot'+i+'@test'};await register('Jogador '+i);assert.equal((await post({action:'join',cup:id})).status,200)}
+current={userId:'u16',email:'sixteen@test'};await register('Jogador 16');assert.equal((await post({action:'join',cup:id})).status,409);
 current={userId:'u1',email:'one@test'};assert.equal((await post({action:'start',cup:id})).status,200);clock+=8000;assert.equal((await post({action:'state',cup:id,round:1,x:2400,y:520,angle:0,progress:10})).status,400);clock+=65000;assert.equal((await post({action:'state',cup:id,round:1,x:2400,y:520,angle:0,progress:3})).status,200);assert.equal(sql.prepare('SELECT count(*) n FROM results').get().n,0);clock+=135000;assert.equal((await post({action:'state',cup:id,round:1,x:2400,y:520,angle:0,progress:10})).status,200);assert.equal((await post({action:'state',cup:id,round:1,x:2400,y:520,angle:0,progress:10})).status,200);
 assert.equal(sql.prepare('SELECT count(*) n FROM results').get().n,1);const state=await (await apiExports.GET(new Request('https://game.test/api/race?cup='+id))).json();assert.equal(state.players.length,15);assert.equal(state.results.length,1);assert.equal((await post({action:'state',cup:id,round:1,x:12000,y:520,angle:0,progress:10})).status,400);
 current={userId:'u16',email:'sixteen@test'};assert.equal((await apiExports.GET(new Request('https://game.test/api/race?cup='+id))).status,403);assert.equal((await post({action:'join',cup:id})).status,409);
