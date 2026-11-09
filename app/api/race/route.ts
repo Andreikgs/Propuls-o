@@ -26,7 +26,7 @@ export async function POST(req:Request){
  }
  const account=await db.prepare('SELECT name FROM accounts WHERE user=?').bind(uid).first<{name:string}>();
  if(!account)return json({error:'Defina seu nome no primeiro acesso à conta.'},403);
- const roster:Record<string,string>={drupa:'#53B800',bozo:'#FF7900'};
+ const roster:Record<string,string>={drupa:'#53B800',bozo:'#FF7900',lorena:'#FEFEFE'};
  const driverId=typeof b.driverId==='string'&&Object.hasOwn(roster,b.driverId)?b.driverId:'';
  const name=account.name,color=roster[driverId];
  if(['create','join'].includes(b.action)&&!driverId)return json({error:'Selecione um piloto disponível.'},400);

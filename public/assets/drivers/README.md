@@ -2,6 +2,8 @@
 
 Retratos e carros fornecidos pelo usuário. Drupa usa o nº 17; Bozo usa o nº 07.
 
+Lorena usa o nº 08. `lorena-portrait.webp` e `lorena-car.webp` são as imagens originais redimensionadas e convertidas para WebP, preservando a transparência já existente no carro.
+
 `bozo-portrait.webp` é o retrato original redimensionado e convertido para WebP.
 `bozo-car.webp` usa o recorte transparente produzido pela ferramenta integrada ImageGen, depois redimensionado e convertido para WebP. O arquivo original fornecido pelo usuário foi preservado.
 
