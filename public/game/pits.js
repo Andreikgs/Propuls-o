@@ -6,7 +6,7 @@ function pitOffset(f, track = 0) {
     const u = pitPhase(f, track), smooth = t => t * t * (3 - 2 * t);
     if (u > PIT.span)
         return null;
-    const q = position(f, 0, track), y = position(-TRACKS[track].offset, 0, track).y - [1050, 1200, 630][track];
+    const q = position(f, 0, track), y = position(-TRACKS[track].offset, 0, track).y - [2100, 2400, 1260][track];
     const lane = Math.min(-260, (y - q.y) / Math.cos(q.angle));
     if (u < .08)
         return -60 + (lane + 60) * smooth(u / .08);

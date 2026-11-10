@@ -14,9 +14,10 @@ try {
     stats = { ...stats, ...JSON.parse(localStorage.getItem('oval-stats-v2') || '{}') };
 }
 catch { }
-if (stats.laps !== 10) {
+if (stats.laps !== 10 || stats.trackVersion !== 2) {
     stats.best = 0;
     stats.laps = 10;
+    stats.trackVersion = 2;
 }
 profile.driverId=selectedDriver(profile.driverId).id;profile.color=selectedDriver(profile.driverId).color;profile.name='Visitante';
 let user = null, cups = [], room = null, selectedTrack = 0, view = 'home', race = null, keys = {}, polling = false, lastSeenRound = 0;
@@ -98,7 +99,7 @@ function standings() { let scores = {}; room.players.forEach(p => scores[p.user]
             scores[x.user].wins++;
     } });
 } return Object.values(scores).sort((a, b) => b.points - a.points || b.wins - a.wins || a.name.localeCompare(b.name)); }
-function renderRoom() { const c = room.cup; $('#roomTitle').textContent = c.name; $('#roomInfo').textContent = 'Etapa ' + c.round + ' de ' + c.rounds + ' · ' + TRACKS[championshipTrack(c.round)].name + ' · 10 voltas'; $('#roomCode').textContent = c.id; $('#playerCount').textContent = room.players.length + ' / 15 PILOTOS'; $('#startOnline').classList.toggle('hidden', !user || c.owner !== user.id); $('#startOnline').disabled = c.round >= c.rounds; $('#startOnline').textContent = c.round ? 'Próxima etapa →' : 'Iniciar etapa →'; $('#roomStatus').textContent = c.round >= c.rounds ? 'Última etapa. A classificação se atualiza conforme os pilotos terminam.' : c.round ? 'O organizador pode iniciar a próxima etapa após todos terminarem ou após 30 minutos.' : 'Compartilhe o código. O organizador inicia quando pelo menos dois pilotos entrarem.'; $('#ranking').innerHTML = standings().map((p, i) => { const r = room.results.find(x => x.round === c.round && x.user === p.user); return '<tr><td>' + String(i + 1).padStart(2, '0') + '</td><td><span style="color:' + esc(p.color) + '">■</span> ' + esc(p.name) + (user && p.user === user.id ? ' <span class="note">(você)</span>' : '') + '</td><td><b>' + p.points + '</b></td><td>' + p.wins + '</td><td>' + (r ? fmt(r.elapsed) : c.round ? 'Aguardando resultado' : 'No grid') + '</td></tr>'; }).join(''); }
+function renderRoom() { const c = room.cup; $('#roomTitle').textContent = c.name; $('#roomInfo').textContent = 'Etapa ' + c.round + ' de ' + c.rounds + ' · ' + TRACKS[championshipTrack(c.round)].name + ' · 10 voltas'; $('#roomCode').textContent = c.id; $('#playerCount').textContent = room.players.length + ' / 15 PILOTOS'; $('#startOnline').classList.toggle('hidden', !user || c.owner !== user.id); $('#startOnline').disabled = c.round >= c.rounds; $('#startOnline').textContent = c.round ? 'Próxima etapa →' : 'Iniciar etapa →'; $('#roomStatus').textContent = c.round >= c.rounds ? 'Última etapa. A classificação se atualiza conforme os pilotos terminam.' : c.round ? 'O organizador pode iniciar a próxima etapa após todos terminarem ou após 60 minutos.' : 'Compartilhe o código. O organizador inicia quando pelo menos dois pilotos entrarem.'; $('#ranking').innerHTML = standings().map((p, i) => { const r = room.results.find(x => x.round === c.round && x.user === p.user); return '<tr><td>' + String(i + 1).padStart(2, '0') + '</td><td><span style="color:' + esc(p.color) + '">■</span> ' + esc(p.name) + (user && p.user === user.id ? ' <span class="note">(você)</span>' : '') + '</td><td><b>' + p.points + '</b></td><td>' + p.wins + '</td><td>' + (r ? fmt(r.elapsed) : c.round ? 'Aguardando resultado' : 'No grid') + '</td></tr>'; }).join(''); }
 $('#copyCode').onclick = async () => { try {
     await navigator.clipboard.writeText(room.cup.id);
     toast('Código copiado!');

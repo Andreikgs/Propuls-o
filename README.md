@@ -18,7 +18,7 @@ Abra `Propulsao-Offline.html` em um navegador. Não precisa instalar dependênci
 - Mapas, referências e limites da adaptação em [CIRCUITOS.md](CIRCUITOS.md).
 
 ## Pilotagem e câmera
-Mapa de 10800 × 6480 unidades, com os traçados 50% mais longos que a versão de 7200 × 4320 e carros na mesma escala. O cenário estático usa resolução limitada para evitar aumentar a memória na proporção da área do mapa. Carro fixo no centro da câmera; minimapa mostra o circuito completo. A física inclui esterçamento progressivo, inércia lateral, limite de aderência em curvas, freios, grama com menor tração e colisão com o muro externo. As voltas exigem 16 setores em ordem. Os recordes desta física usam armazenamento separado da versão assistida.
+Mapa de 21600 × 12960 unidades, com os traçados 100% mais longos que a versão de 10800 × 6480 e carros na mesma escala. A largura da faixa de corrida é preservada. O cenário estático usa resolução limitada para evitar aumentar a memória na proporção da área do mapa. Carro fixo no centro da câmera; minimapa mostra o circuito completo. A física inclui esterçamento progressivo, inércia lateral, limite de aderência em curvas, freios, grama com menor tração e colisão com o muro externo. As voltas exigem 16 setores em ordem. Os recordes desta física usam armazenamento separado da versão assistida.
 
 ## Colisões contra a IA
 Os 15 carros usam posição e velocidade físicas. Contato por carroceria orientada transfere impulso aos dois carros, com atrito e rotação em impactos fora do centro. A IA volta a pilotar após o empurrão; engavetamentos afetam os demais adversários. O muro considera o tamanho do carro. Carros em recuperação ficam temporariamente fora das colisões.
@@ -39,7 +39,7 @@ As etapas alternam Daytona → Talladega → Bristol, repetindo o ciclo em campe
 
 No primeiro login, defina o nome da conta (2 a 24 caracteres). Ele fica salvo no servidor e identifica o jogador no placar, independentemente do personagem escolhido. Contas anteriores também completam esse cadastro no próximo acesso. Antes de correr, confirme o piloto e seu carro fixo. O modo offline continua sem exigir conta.
 
-Um campeonato precisa de 2 jogadores para começar. Cada etapa dura no máximo 30 minutos. Pontos: 25, 18, 15, 12, 10, 8, 6, 4. Abandonos não pontuam. A ordem de chegada usa o horário do servidor e pode ser afetada pela latência.
+Um campeonato precisa de 2 jogadores para começar. Cada etapa dura no máximo 60 minutos. Pontos: 25, 18, 15, 12, 10, 8, 6, 4. Abandonos não pontuam. A ordem de chegada usa o horário do servidor e pode ser afetada pela latência.
 
 ## Desenvolvimento
 Node >=22.13, npm ci, npm run dev. Configuração de hospedagem em `.openai/hosting.json`; banco DB; migrações em `drizzle/`. O modo online depende da publicação e do acesso compartilhado do site. O site nasce privado, restrito ao proprietário.

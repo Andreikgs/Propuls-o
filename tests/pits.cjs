@@ -20,9 +20,9 @@ for(const track of [0,1,2]){
  var outside={...createDriver(track),...position(.04,0,track),pitRequested:true};if(stepPit(outside,.1))throw Error('Pit outside strip');
  var reset={...createDriver(track),tires:.2,pitService:2,start:0};recoverDriver(reset);if(reset.tires!==.2||reset.pitService!==0)throw Error('Reset repairs tires or retains service');
  var bot={...createDriver(track),...position(pitFraction(.01,track),65,track),tires:.3,lane:65,cruise:205,n:12,prevFraction:pitFraction(.01,track),gates:Math.floor(pitFraction(.01,track)*16),p:pitFraction(.01,track)};
- for(let i=0;i<14400&&!bot.pitStops;i++)stepDriver(bot,botInput(bot),1/120);
+ for(let i=0;i<28800&&!bot.pitStops;i++)stepDriver(bot,botInput(bot),1/120);
  if(bot.pitStops!==1||bot.tires!==1)throw Error('AI failed pit on '+track);
- for(let i=0;i<14400&&bot.inPitLane;i++)stepDriver(bot,botInput(bot),1/120);if(bot.inPitLane)throw Error('AI failed pit exit on '+track);if(bot.gates<Math.floor(pitFraction(.01,track)*16)+3)throw Error('Pit route lost checkpoints');
+ for(let i=0;i<28800&&bot.inPitLane;i++)stepDriver(bot,botInput(bot),1/120);if(bot.inPitLane)throw Error('AI failed pit exit on '+track);if(bot.gates<Math.floor(pitFraction(.01,track)*16)+3)throw Error('Pit route lost checkpoints');
  for(const side of [-1,1]){const edge={...createDriver(track),...position(pitFraction(.16,track),pitOffset(pitFraction(.16,track),track)+side*90,track),inPitLane:true};containCar(edge);if(Math.abs(trackInfo(edge.x,edge.y,track).distance-pitOffset(pitFraction(.16,track),track))>40)throw Error('Pit wall escape')}
 }
 `);

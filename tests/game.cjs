@@ -26,7 +26,7 @@ console.log('PASS: manual steering, inertia, brakes, offroad, barrier, sequentia
 
 run(`for(const track of [0,1,2]){
  const d=createDriver(track);let offroad=0,t=0;
- for(;t<120&&d.gates<16;t+=1/120){
+ for(;t<240&&d.gates<16;t+=1/120){
   const info=trackInfo(d.x,d.y,track),target=position(info.fraction+.008,0,track),dx=target.x-d.x,dy=target.y-d.y;
   let error=Math.atan2(dy,dx)-d.angle;error=Math.atan2(Math.sin(error),Math.cos(error));
   const steering=Math.atan(96*Math.sin(error)/Math.hypot(dx,dy))/(.48/(1+d.speed/120));
@@ -54,7 +54,7 @@ run(`for(const track of [0,1,2]){
  if(d.gates!==160||d.p!==10)throw Error('Ten laps not recorded on '+track);
  const bad=createDriver(track);for(let i=1;i<=1600;i++){Object.assign(bad,position(i/1600,-300,track));updateProgress(bad)}
  if(bad.gates!==0)throw Error('Infield shortcut awarded progress');
- if(mesh.total/330<18)throw Error('Circuit violates server minimum lap time');
+ if(mesh.total/330<36)throw Error('Circuit violates server minimum lap time');
 }
 if(!(trackMesh(1).total>trackMesh(0).total&&trackMesh(0).total>trackMesh(2).total))throw Error('Circuit length ordering');
 if(position(0,0,1).x<2700)throw Error('Talladega finish must be beyond trioval centre');
@@ -129,7 +129,7 @@ const bozo=sql.prepare('SELECT color,driver_id FROM members WHERE user=?').get('
 for(let i=3;i<=15;i++){current={userId:'u'+i,email:'pilot'+i+'@test'};await register('Jogador '+i);assert.equal((await post({action:'join',cup:id,driverId:i===3?'lorena':'drupa'})).status,200)}
 const lorena=sql.prepare('SELECT color,driver_id FROM members WHERE user=?').get('u3');assert.equal(lorena.driver_id,'lorena');assert.equal(lorena.color,'#FEFEFE');
 current={userId:'u16',email:'sixteen@test'};await register('Jogador 16');assert.equal((await post({action:'join',cup:id})).status,409);
-current={userId:'u1',email:'one@test'};assert.equal((await post({action:'start',cup:id})).status,200);clock+=8000;assert.equal((await post({action:'state',cup:id,round:1,x:2400,y:520,angle:0,progress:10})).status,400);clock+=65000;assert.equal((await post({action:'state',cup:id,round:1,x:2400,y:520,angle:0,progress:3})).status,200);assert.equal(sql.prepare('SELECT count(*) n FROM results').get().n,0);clock+=135000;assert.equal((await post({action:'state',cup:id,round:1,x:2400,y:520,angle:0,progress:10})).status,200);assert.equal((await post({action:'state',cup:id,round:1,x:2400,y:520,angle:0,progress:10})).status,200);
-assert.equal(sql.prepare('SELECT count(*) n FROM results').get().n,1);const state=await (await apiExports.GET(new Request('https://game.test/api/race?cup='+id))).json();assert.equal(state.players.length,15);assert.equal(state.results.length,1);assert.equal((await post({action:'state',cup:id,round:1,x:12000,y:520,angle:0,progress:10})).status,400);
+current={userId:'u1',email:'one@test'};assert.equal((await post({action:'start',cup:id})).status,200);clock+=8000;assert.equal((await post({action:'state',cup:id,round:1,x:2400,y:520,angle:0,progress:10})).status,400);clock+=130000;assert.equal((await post({action:'state',cup:id,round:1,x:2400,y:520,angle:0,progress:3})).status,200);assert.equal(sql.prepare('SELECT count(*) n FROM results').get().n,0);clock+=270000;assert.equal((await post({action:'state',cup:id,round:1,x:2400,y:520,angle:0,progress:10})).status,200);assert.equal((await post({action:'state',cup:id,round:1,x:2400,y:520,angle:0,progress:10})).status,200);
+assert.equal(sql.prepare('SELECT count(*) n FROM results').get().n,1);const state=await (await apiExports.GET(new Request('https://game.test/api/race?cup='+id))).json();assert.equal(state.players.length,15);assert.equal(state.results.length,1);assert.equal((await post({action:'state',cup:id,round:1,x:21601,y:520,angle:0,progress:10})).status,400);
 current={userId:'u16',email:'sixteen@test'};assert.equal((await apiExports.GET(new Request('https://game.test/api/race?cup='+id))).status,403);assert.equal((await post({action:'join',cup:id})).status,409);
 console.log('PASS: login obrigatório, criação, convite, autorização, largada, validação de tempo, resultado único e leitura de placar.');})().catch(e=>{console.error(e);process.exitCode=1});

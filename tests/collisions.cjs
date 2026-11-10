@@ -38,7 +38,7 @@ if(push.x>target.x)throw Error('High-speed rear impact tunneled through target')
 `);
 run(`for(const track of [0,1,2]){
 const bot={...createDriver(track),lane:45,cruise:205};Object.assign(bot,position(0,45,track));
-for(let i=0;i<14400&&bot.gates<16;i++)stepDriver(bot,botInput(bot),1/120);
+for(let i=0;i<28800&&bot.gates<16;i++)stepDriver(bot,botInput(bot),1/120);
 if(bot.gates<16)throw Error('Physical AI cannot finish lap on '+track);
 }
 `);

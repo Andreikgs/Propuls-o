@@ -1,6 +1,6 @@
 'use strict';
-const RACE_LAPS = 10, GRID_SIZE = 15, RACE_TIMEOUT = 1800000;
-const WORLD = { width: 10800, height: 6480, cx: 5400, cy: 3240, halfRoad: 128 };
+const RACE_LAPS = 10, GRID_SIZE = 15, RACE_TIMEOUT = 3600000;
+const WORLD = { width: 21600, height: 12960, cx: 10800, cy: 6480, halfRoad: 128 };
 const wrap = n => (n % 1 + 1) % 1, clamp = (n, a, b) => Math.max(a, Math.min(b, n));
 const TRACKS = [
     { name: 'Daytona', full: 'Daytona International Speedway', miles: '2,5 mi', type: 'Trioval · largada central', offset: 0 },
@@ -42,8 +42,8 @@ function trackMesh(track = 0) {
         start[0] *= wide;
         curves = curves.map(c => c.map(p => [p[0] * wide, p[1]]));
     }
-    start = start.map(v => v * 2.25);
-    curves = curves.map(c => c.map(p => p.map(v => v * 2.25)));
+    start = start.map(v => v * 4.5);
+    curves = curves.map(c => c.map(p => p.map(v => v * 4.5)));
     const points = [];
     let from = start;
     for (const [b, c, d] of curves) {

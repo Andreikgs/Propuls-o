@@ -132,8 +132,8 @@ html[data-theme="light"] .game-menu{background:#e4e2dc;color:#273848}html[data-t
 <section id="raceScreen" class="race-screen hidden"><header class="race-head"><div class="logo"><i class="mark"></i>PROPUL<em>SÃO</em></div><div class="race-stats"><div><small>POSIÇÃO</small><b id="hudPos">1 / 15</b></div><div><small>VOLTA</small><b id="hudLap">1 / 10</b></div><div><small>VELOCIDADE</small><b><span id="hudSpeed">0</span> <small style="display:inline;letter-spacing:0">KM/H</small></b></div><div><small>PNEUS</small><b id="hudTires">100%</b></div><div><small>TEMPO</small><b id="hudTime">00:00</b></div></div><button class="small ghost" id="soundBtn" type="button" aria-label="Silenciar som" aria-pressed="false">🔊</button><button class="small" id="pauseBtn">Ⅱ Pausar</button></header><div class="race-wrap"><canvas id="raceCanvas" width="1200" height="720" aria-label="Pista de corrida top-down"></canvas><div class="race-overlay" id="overlay"></div></div><footer class="race-bottom"><span class="help">↑ ACELERAR &nbsp; ← → ESTERÇAR &nbsp; ↓ FREAR &nbsp; P PAUSAR &nbsp; R REPOSICIONAR</span><span id="networkStatus">SINGLE PLAYER · IA</span><div class="touch"><button data-key="ArrowLeft" aria-label="Esquerda">←</button><button data-key="ArrowRight" aria-label="Direita">→</button><button data-key="ArrowDown" aria-label="Frear">↓</button><button data-key="ArrowUp" class="primary" aria-label="Acelerar">↑</button></div><button class="small" id="pitBtn" type="button" aria-pressed="false">B · Boxes</button><button class="small ghost" id="recoverBtn" aria-label="Reposicionar carro">↺ Voltar à pista</button><button class="small ghost" id="exitRace">Sair ×</button></footer></section><div class="toast hidden" id="toast" role="status"></div>
 <script>
 'use strict';
-const RACE_LAPS = 10, GRID_SIZE = 15, RACE_TIMEOUT = 1800000;
-const WORLD = { width: 10800, height: 6480, cx: 5400, cy: 3240, halfRoad: 128 };
+const RACE_LAPS = 10, GRID_SIZE = 15, RACE_TIMEOUT = 3600000;
+const WORLD = { width: 21600, height: 12960, cx: 10800, cy: 6480, halfRoad: 128 };
 const wrap = n => (n % 1 + 1) % 1, clamp = (n, a, b) => Math.max(a, Math.min(b, n));
 const TRACKS = [
     { name: 'Daytona', full: 'Daytona International Speedway', miles: '2,5 mi', type: 'Trioval · largada central', offset: 0 },
@@ -175,8 +175,8 @@ function trackMesh(track = 0) {
         start[0] *= wide;
         curves = curves.map(c => c.map(p => [p[0] * wide, p[1]]));
     }
-    start = start.map(v => v * 2.25);
-    curves = curves.map(c => c.map(p => p.map(v => v * 2.25)));
+    start = start.map(v => v * 4.5);
+    curves = curves.map(c => c.map(p => p.map(v => v * 4.5)));
     const points = [];
     let from = start;
     for (const [b, c, d] of curves) {
@@ -229,7 +229,7 @@ function pitOffset(f, track = 0) {
     const u = pitPhase(f, track), smooth = t => t * t * (3 - 2 * t);
     if (u > PIT.span)
         return null;
-    const q = position(f, 0, track), y = position(-TRACKS[track].offset, 0, track).y - [1050, 1200, 630][track];
+    const q = position(f, 0, track), y = position(-TRACKS[track].offset, 0, track).y - [2100, 2400, 1260][track];
     const lane = Math.min(-260, (y - q.y) / Math.cos(q.angle));
     if (u < .08)
         return -60 + (lane + 60) * smooth(u / .08);
@@ -1040,9 +1040,10 @@ try {
     stats = { ...stats, ...JSON.parse(localStorage.getItem('oval-stats-v2') || '{}') };
 }
 catch { }
-if (stats.laps !== 10) {
+if (stats.laps !== 10 || stats.trackVersion !== 2) {
     stats.best = 0;
     stats.laps = 10;
+    stats.trackVersion = 2;
 }
 profile.driverId=selectedDriver(profile.driverId).id;profile.color=selectedDriver(profile.driverId).color;profile.name='Visitante';
 let user = null, cups = [], room = null, selectedTrack = 0, view = 'home', race = null, keys = {}, polling = false, lastSeenRound = 0;
@@ -1124,7 +1125,7 @@ function standings() { let scores = {}; room.players.forEach(p => scores[p.user]
             scores[x.user].wins++;
     } });
 } return Object.values(scores).sort((a, b) => b.points - a.points || b.wins - a.wins || a.name.localeCompare(b.name)); }
-function renderRoom() { const c = room.cup; $('#roomTitle').textContent = c.name; $('#roomInfo').textContent = 'Etapa ' + c.round + ' de ' + c.rounds + ' · ' + TRACKS[championshipTrack(c.round)].name + ' · 10 voltas'; $('#roomCode').textContent = c.id; $('#playerCount').textContent = room.players.length + ' / 15 PILOTOS'; $('#startOnline').classList.toggle('hidden', !user || c.owner !== user.id); $('#startOnline').disabled = c.round >= c.rounds; $('#startOnline').textContent = c.round ? 'Próxima etapa →' : 'Iniciar etapa →'; $('#roomStatus').textContent = c.round >= c.rounds ? 'Última etapa. A classificação se atualiza conforme os pilotos terminam.' : c.round ? 'O organizador pode iniciar a próxima etapa após todos terminarem ou após 30 minutos.' : 'Compartilhe o código. O organizador inicia quando pelo menos dois pilotos entrarem.'; $('#ranking').innerHTML = standings().map((p, i) => { const r = room.results.find(x => x.round === c.round && x.user === p.user); return '<tr><td>' + String(i + 1).padStart(2, '0') + '</td><td><span style="color:' + esc(p.color) + '">■</span> ' + esc(p.name) + (user && p.user === user.id ? ' <span class="note">(você)</span>' : '') + '</td><td><b>' + p.points + '</b></td><td>' + p.wins + '</td><td>' + (r ? fmt(r.elapsed) : c.round ? 'Aguardando resultado' : 'No grid') + '</td></tr>'; }).join(''); }
+function renderRoom() { const c = room.cup; $('#roomTitle').textContent = c.name; $('#roomInfo').textContent = 'Etapa ' + c.round + ' de ' + c.rounds + ' · ' + TRACKS[championshipTrack(c.round)].name + ' · 10 voltas'; $('#roomCode').textContent = c.id; $('#playerCount').textContent = room.players.length + ' / 15 PILOTOS'; $('#startOnline').classList.toggle('hidden', !user || c.owner !== user.id); $('#startOnline').disabled = c.round >= c.rounds; $('#startOnline').textContent = c.round ? 'Próxima etapa →' : 'Iniciar etapa →'; $('#roomStatus').textContent = c.round >= c.rounds ? 'Última etapa. A classificação se atualiza conforme os pilotos terminam.' : c.round ? 'O organizador pode iniciar a próxima etapa após todos terminarem ou após 60 minutos.' : 'Compartilhe o código. O organizador inicia quando pelo menos dois pilotos entrarem.'; $('#ranking').innerHTML = standings().map((p, i) => { const r = room.results.find(x => x.round === c.round && x.user === p.user); return '<tr><td>' + String(i + 1).padStart(2, '0') + '</td><td><span style="color:' + esc(p.color) + '">■</span> ' + esc(p.name) + (user && p.user === user.id ? ' <span class="note">(você)</span>' : '') + '</td><td><b>' + p.points + '</b></td><td>' + p.wins + '</td><td>' + (r ? fmt(r.elapsed) : c.round ? 'Aguardando resultado' : 'No grid') + '</td></tr>'; }).join(''); }
 $('#copyCode').onclick = async () => { try {
     await navigator.clipboard.writeText(room.cup.id);
     toast('Código copiado!');
@@ -1503,8 +1504,8 @@ function frame(now) {
 'use strict';
 function drawTrackCards() { $$('[data-track]').forEach(button => { const track = +button.dataset.track; let points = ''; for (let i = 0; i <= 200; i++) {
     const p = position(i / 200, 0, track);
-    points += (p.x / 45) + ',' + (p.y / 45) + ' ';
-} const s = position(0, 0, track); button.insertAdjacentHTML('afterbegin', '<svg viewBox="0 0 240 144" width="100%" height="95" aria-hidden="true"><polyline points="' + points + '" fill="none" stroke="currentColor" stroke-width="5" stroke-linejoin="round"/><circle cx="' + s.x / 45 + '" cy="' + s.y / 45 + '" r="4" fill="#F04718"/></svg>'); }); }
+    points += (p.x / WORLD.width * 240) + ',' + (p.y / WORLD.height * 144) + ' ';
+} const s = position(0, 0, track); button.insertAdjacentHTML('afterbegin', '<svg viewBox="0 0 240 144" width="100%" height="95" aria-hidden="true"><polyline points="' + points + '" fill="none" stroke="currentColor" stroke-width="5" stroke-linejoin="round"/><circle cx="' + s.x / WORLD.width * 240 + '" cy="' + s.y / WORLD.height * 144 + '" r="4" fill="#F04718"/></svg>'); }); }
 drawTrackCards();
 refreshStats();
 renderDriverSelection();
