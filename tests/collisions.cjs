@@ -6,7 +6,16 @@ vm.createContext(sandbox);game.load(sandbox);const run=s=>vm.runInContext(s,sand
 
 
 function body(x,y,vx=0,vy=0,angle=0){return{x,y,vx,vy,angle,yaw:0,impactYaw:0,recovery:0,speed:Math.hypot(vx,vy)}}
-function energy(...b){return b.reduce((sum,a)=>sum+.5*(a.vx*a.vx+a.vy*a.vy+run('CAR_BODY.inertia')*(a.impactYaw||0)**2),0)}
+function energy(...b){return b.reduce((sum,a)=>sum+.5*(a.vx*a.vx+a.vy*a.vy+run('CAR_BODY.inertia')*(a.driverId?2.25:1)*(a.impactYaw||0)**2),0)}
+for(const driverId of ['drupa','bozo','lorena']){
+ sandbox.a={...body(0,0,220),driverId};sandbox.b=body(78,12,60);
+ assert.ok(run('collisionContact(a,b)'),'Larger car contact must pass broad-phase beyond old 72-unit limit');
+ const initialEnergy=energy(sandbox.a,sandbox.b);run('resolveCarCollision(a,b)');
+ assert.ok(sandbox.b.vx>60);assert.ok(energy(sandbox.a,sandbox.b)<=initialEnergy+.001);
+ sandbox.b=body(0,38);assert.equal(run('collisionContact(a,b)'),null,'No contact outside enlarged side boundary');
+ run(`for(const track of [0,1,2]){const d={...createDriver(track),driverId:'${driverId}'};for(const side of [-1,1]){Object.assign(d,position(.3,side*160,track));containCar(d);const q=trackInfo(d.x,d.y,track);if(Math.abs(q.distance)+bodyRadius(d,{x:q.nx,y:q.ny})>WORLD.halfRoad+24.5)throw Error('Enlarged hull escaped wall')}}`);
+}
+console.log('PASS: all three enlarged driver hulls, broad-phase contacts, impact energy and wall containment.');
 sandbox.a=body(0,0,200);sandbox.b=body(60,0,50);
 let before=energy(sandbox.a,sandbox.b);run('resolveCarCollision(a,b)');
 assert.ok(sandbox.b.vx>50,'Rear impact accelerates target');assert.ok(sandbox.a.vx<200,'Striker loses momentum');

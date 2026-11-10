@@ -14,6 +14,7 @@ Abra `Propulsao-Offline.html` em um navegador. Não precisa instalar dependênci
 - Drupa: retrato e carro verde/preto nº 17 fornecidos pelo usuário. O carro escolhido é usado na corrida; não há edição de pintura na garagem.
 - Bozo: retrato laranja/preto e carro nº 07. A escolha fica salva no navegador; no campeonato, o carro acompanha o piloto registrado naquela sala.
 - Lorena: retrato branco/preto e carro nº 08, disponíveis na mesma seleção offline e online.
+- Os carros dos pilotos selecionáveis têm escala de corrida 50% maior, com carroceria de colisão e inércia ajustadas à nova dimensão.
 - Mapas, referências e limites da adaptação em [CIRCUITOS.md](CIRCUITOS.md).
 
 ## Pilotagem e câmera

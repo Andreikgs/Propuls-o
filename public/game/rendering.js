@@ -401,14 +401,14 @@ function renderRace(r) {
         car(g, b.x, b.y, b.angle, b.color, b.n, 1.5, b.steer * .32);
     for (const b of r.remotes) {
         if (b.updated && b.x) {
-            drawDriverCar(g, b.x, b.y, b.angle, b.driverId, 1.5);
+            drawDriverCar(g, b.x, b.y, b.angle, b.driverId, 1.5 * PILOT_CAR_SCALE);
             g.fillStyle = '#FEFEFE';
             g.font = '12px Arial';
             g.textAlign = 'center';
             g.fillText(b.name, b.x, b.y - 35);
         }
     }
-    drawDriverCar(g, r.x, r.y, r.angle, r.driverId, 1.5, r.steer * .32);
+    drawDriverCar(g, r.x, r.y, r.angle, r.driverId, 1.5 * PILOT_CAR_SCALE, r.steer * .32);
     g.restore();
     // The camera translation always puts the player's world position at the viewport center.
     g.save();

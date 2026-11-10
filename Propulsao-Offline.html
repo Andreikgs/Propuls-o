@@ -360,10 +360,12 @@ function stepDriver(r, input, dt, deferProgress = false) {
     }
 }
 const CAR_BODY = { halfLength: 32, halfWidth: 15, inertia: (64 * 64 + 30 * 30) / 12 };
+const PILOT_CAR_SCALE = 1.5;
+function carBodyScale(b) { return b.driverId ? PILOT_CAR_SCALE : 1; }
 function carAxes(b) { return [{ x: Math.cos(b.angle), y: Math.sin(b.angle) }, { x: -Math.sin(b.angle), y: Math.cos(b.angle) }]; }
-function bodyRadius(b, n) { const axes = carAxes(b); return CAR_BODY.halfLength * Math.abs(axes[0].x * n.x + axes[0].y * n.y) + CAR_BODY.halfWidth * Math.abs(axes[1].x * n.x + axes[1].y * n.y); }
+function bodyRadius(b, n) { const axes = carAxes(b); return carBodyScale(b) * (CAR_BODY.halfLength * Math.abs(axes[0].x * n.x + axes[0].y * n.y) + CAR_BODY.halfWidth * Math.abs(axes[1].x * n.x + axes[1].y * n.y)); }
 function collisionContact(a, b) {
-    if (Math.hypot(b.x - a.x, b.y - a.y) > 72)
+    if (Math.hypot(b.x - a.x, b.y - a.y) > 36 * (carBodyScale(a) + carBodyScale(b)))
         return null;
     let penetration = Infinity, normal;
     for (const axis of [...carAxes(a), ...carAxes(b)]) {
@@ -387,21 +389,21 @@ function resolveCarCollision(a, b) {
     if (!contact)
         return false;
     const { n } = contact, ra = { x: contact.x - a.x, y: contact.y - a.y }, rb = { x: contact.x - b.x, y: contact.y - b.y };
-    const invI = 1 / CAR_BODY.inertia, cross = (r, v) => r.x * v.y - r.y * v.x;
+    const invIA = 1 / (CAR_BODY.inertia * carBodyScale(a) ** 2), invIB = 1 / (CAR_BODY.inertia * carBodyScale(b) ** 2), cross = (r, v) => r.x * v.y - r.y * v.x;
     const wa = (a.yaw || 0) + (a.impactYaw || 0), wb = (b.yaw || 0) + (b.impactYaw || 0);
     const rv = { x: b.vx - wb * rb.y - a.vx + wa * ra.y, y: b.vy + wb * rb.x - a.vy - wa * ra.x };
     const approach = rv.x * n.x + rv.y * n.y;
     if (approach < 0) {
-        const ca = cross(ra, n), cb = cross(rb, n), j = -(1 + (approach < -15 ? .12 : 0)) * approach / (2 + (ca * ca + cb * cb) * invI);
+        const ca = cross(ra, n), cb = cross(rb, n), j = -(1 + (approach < -15 ? .12 : 0)) * approach / (2 + ca * ca * invIA + cb * cb * invIB);
         const tangent = { x: -n.y, y: n.x }, ta = cross(ra, tangent), tb = cross(rb, tangent);
-        const jt = clamp(-(rv.x * tangent.x + rv.y * tangent.y) / (2 + (ta * ta + tb * tb) * invI), -.22 * j, .22 * j);
+        const jt = clamp(-(rv.x * tangent.x + rv.y * tangent.y) / (2 + ta * ta * invIA + tb * tb * invIB), -.22 * j, .22 * j);
         const impulse = { x: j * n.x + jt * tangent.x, y: j * n.y + jt * tangent.y };
         a.vx -= impulse.x;
         a.vy -= impulse.y;
         b.vx += impulse.x;
         b.vy += impulse.y;
-        a.impactYaw = (a.impactYaw || 0) - cross(ra, impulse) * invI;
-        b.impactYaw = (b.impactYaw || 0) + cross(rb, impulse) * invI;
+        a.impactYaw = (a.impactYaw || 0) - cross(ra, impulse) * invIA;
+        b.impactYaw = (b.impactYaw || 0) + cross(rb, impulse) * invIB;
         a.contactTime = b.contactTime = .35;
         if (approach < -8) {
             a.collisionPending = b.collisionPending = true;
@@ -948,14 +950,14 @@ function renderRace(r) {
         car(g, b.x, b.y, b.angle, b.color, b.n, 1.5, b.steer * .32);
     for (const b of r.remotes) {
         if (b.updated && b.x) {
-            drawDriverCar(g, b.x, b.y, b.angle, b.driverId, 1.5);
+            drawDriverCar(g, b.x, b.y, b.angle, b.driverId, 1.5 * PILOT_CAR_SCALE);
             g.fillStyle = '#FEFEFE';
             g.font = '12px Arial';
             g.textAlign = 'center';
             g.fillText(b.name, b.x, b.y - 35);
         }
     }
-    drawDriverCar(g, r.x, r.y, r.angle, r.driverId, 1.5, r.steer * .32);
+    drawDriverCar(g, r.x, r.y, r.angle, r.driverId, 1.5 * PILOT_CAR_SCALE, r.steer * .32);
     g.restore();
     // The camera translation always puts the player's world position at the viewport center.
     g.save();
