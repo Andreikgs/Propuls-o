@@ -94,14 +94,12 @@ function drawHero() {
 }
 let mapCache = null, mapTrack = -1;
 function buildWorld(track) {
-    if (mapCache && mapTrack === track)
-        return mapCache;
-    const canvas = document.createElement('canvas');
-    const mapScale = Math.min(1, 7200 / WORLD.width);
-    canvas.width = Math.round(WORLD.width * mapScale);
-    canvas.height = Math.round(WORLD.height * mapScale);
-    const g = canvas.getContext('2d');
-    g.scale(mapScale, mapScale);
+ if(mapCache&&mapTrack===track)return mapCache;
+ if(mapCache)mapCache.width=mapCache.height=0;
+ const canvas=document.createElement('canvas'),scale=1280/WORLD.width;canvas.width=1280;canvas.height=Math.round(WORLD.height*scale);
+ const g=canvas.getContext('2d');g.scale(scale,scale);paintWorld(g,track);mapCache=canvas;mapTrack=track;return canvas;
+}
+function paintWorld(g,track,bounds=null){
     const path = (lane) => { g.beginPath(); for (let i = 0; i <= 900; i++) {
         const p = position(i / 900, lane, track);
         if (i)
@@ -110,32 +108,10 @@ function buildWorld(track) {
             g.moveTo(p.x, p.y);
     } g.closePath(); };
     const band = (lane, width, color) => { path(lane); g.strokeStyle = color; g.lineWidth = width; g.stroke(); };
-    // Deterministic scenery is baked once, never regenerated in the animation loop.
-    g.fillStyle = ['#bec3b5', '#c9bda8', '#aebcc0'][track];
-    g.fillRect(0, 0, WORLD.width, WORLD.height);
-    for (let y = 0; y < WORLD.height; y += 110) {
-        g.fillStyle = '#27384809';
-        g.fillRect(0, y, WORLD.width, 55);
-    }
-    for (let i = 0; i < 14000; i++) {
-        g.fillStyle = i % 2 ? '#ffffff15' : '#27384812';
-        g.fillRect((i * 431) % WORLD.width, (i * 787) % WORLD.height, 2 + i % 3, 1);
-    }
-    for (let i = 0; i < 420; i++) {
-        const x = (i * 397) % WORLD.width, y = (i * 179) % WORLD.height;
-        if (trackInfo(x, y, track).distance > 350) {
-            g.fillStyle = '#00000025';
-            g.beginPath();
-            g.ellipse(x + 12, y + 13, 19, 13, 0, 0, TAU);
-            g.fill();
-            for (let j = 0; j < 3; j++) {
-                g.fillStyle = ['#46584f', '#58695b', '#71806a'][j];
-                g.beginPath();
-                g.arc(x + j * 3, y - j * 4, 16 - j * 3 + i % 7, 0, TAU);
-                g.fill();
-            }
-        }
-    }
+    const visible=(x,y,r=0)=>!bounds||(x+r>=bounds.x&&y+r>=bounds.y&&x-r<=bounds.x+bounds.width&&y-r<=bounds.y+bounds.height);
+    g.fillStyle=surfacePattern(g,'grass',track);g.fillRect(bounds?bounds.x:0,bounds?bounds.y:0,bounds?bounds.width:WORLD.width,bounds?bounds.height:WORLD.height);
+    band(710,100,'#323e3c');band(710,2,'#d7d5b180');
+    drawScenery(g,track,visible);
     // Service verge, concrete safety walls, apron and orange/white rumble strips.
     band(0, 440, '#27384822');
     band(0, 420, '#a5aaa5');
@@ -147,7 +123,7 @@ function buildWorld(track) {
     g.setLineDash([28, 28]);
     band(0, 278, '#F04718');
     g.setLineDash([]);
-    band(0, 256, track === 2 ? '#9b9d9b' : '#303c45');
+    band(0, 256, surfacePattern(g,'asphalt',track));
     // Pit pavement uses the same material and track-normal cross section as collision geometry.
     g.beginPath();
     for (const side of [-1, 1])
@@ -160,7 +136,7 @@ function buildWorld(track) {
                 g.lineTo(p.x, p.y);
         }
     g.closePath();
-    g.fillStyle = track === 2 ? '#9b9d9b' : '#303c45';
+    g.fillStyle = surfacePattern(g,'asphalt',track);
     g.fill();
     // Asphalt aggregate and darker rubbered-in racing groove.
     g.save();
@@ -171,11 +147,6 @@ function buildWorld(track) {
     g.stroke();
     for (let lane = -110; lane <= 110; lane += 22) {
         band(lane, 1, '#00000012');
-    }
-    for (let i = 0; i < 18000; i++) {
-        const p = position((i * .61803398875) % 1, ((i * 73) % 248) - 124, track);
-        g.fillStyle = i % 3 ? '#00000016' : '#fefefe18';
-        g.fillRect(p.x, p.y, 1 + i % 2, 1);
     }
     band(-22, 31, '#00000016');
     band(-22, 15, '#0000000d');
@@ -267,6 +238,7 @@ function buildWorld(track) {
         g.textAlign = 'center';
         g.fillText(String(i + 1).padStart(2, '0'), p.x, p.y - 115);
     }
+    drawPaddockDetails(g,track,visible);
     for (const [u, label] of [[0, 'PIT IN →'], [.28, 'PIT OUT →']]) {
         const p = position(pitFraction(u, track), -242, track);
         g.save();
@@ -283,8 +255,8 @@ function buildWorld(track) {
     // Catch fencing outside the wall, with regular posts.
     band(181, 1, '#27384866');
     band(191, 1, '#27384866');
-    for (let i = 0; i < 220; i++) {
-        const p = position(i / 220, 187, track);
+    for (let i = 0; i < 1800; i++) {
+        const p = position(i / 1800, 187, track);
         g.save();
         g.translate(p.x, p.y);
         g.rotate(p.angle);
@@ -305,7 +277,7 @@ function buildWorld(track) {
         }
     g.restore();
     for (let i = 0; i < 16; i++) {
-        const p = position(-.005 * (i + 1), (i % 2 ? 1 : -1) * 52, track);
+        const p = position(-100 * (i + 1) / trackMesh(track).total, (i % 2 ? 1 : -1) * 52, track);
         g.save();
         g.translate(p.x, p.y);
         g.rotate(p.angle);
@@ -324,30 +296,9 @@ function buildWorld(track) {
     g.fillText(TRACKS[track].name.toUpperCase(), WORLD.cx, WORLD.cy - 230);
     g.font = '24px Arial';
     g.fillText('PROPULSÃO / ' + TRACKS[track].miles + ' / SENTIDO ANTI-HORÁRIO', WORLD.cx, WORLD.cy - 180);
-    // Tiered grandstands: concrete aisles, seating and roof shadows.
-    for (let i = 0; i < 48; i++) {
-        if (track !== 2 && i > 9 && i < 37)
-            continue;
-        const p = position(i / 48, 300, track);
-        g.save();
-        g.translate(p.x, p.y);
-        g.rotate(p.angle);
-        g.fillStyle = '#00000022';
-        g.fillRect(-94, -40, 188, 90);
-        g.fillStyle = '#273848';
-        g.fillRect(-100, -48, 188, 90);
-        for (let row = 0; row < 4; row++)
-            for (let col = 0; col < 15; col++) {
-                g.fillStyle = ['#c0c3cf', '#f04718', '#f5f3ed'][(col + row) % 3];
-                g.fillRect(-94 + col * 12, -42 + row * 20, 8, 9);
-            }
-        g.fillStyle = '#c0c3cf';
-        g.fillRect(81, -48, 7, 90);
-        g.restore();
-    }
     // Sponsor boards and braking-distance signs stay clear of the driving surface.
-    for (let i = 0; i < 24; i++) {
-        const p = position(i / 24, 223, track);
+    for (let i = 0; i < 180; i++) {
+        const p = position(i / 180, 223, track);
         g.save();
         g.translate(p.x, p.y);
         g.rotate(p.angle);
@@ -371,9 +322,6 @@ function buildWorld(track) {
             g.fillText(String((i + 1) * 100), 0, 5);
             g.restore();
         }
-    mapCache = canvas;
-    mapTrack = track;
-    return canvas;
 }
 function cameraFor(r) { return { x: r.x - 600, y: r.y - 360 }; }
 function renderRace(r) {
@@ -382,7 +330,8 @@ function renderRace(r) {
     g.fillRect(0, 0, 1200, 720);
     g.save();
     g.translate(-camera.x, -camera.y);
-    g.drawImage(map, 0, 0, WORLD.width, WORLD.height);
+    drawWorldTiles(g,r.track,camera);
+    warmWorldAhead(r);
     g.strokeStyle = '#00000088';
     g.lineWidth = 3;
     for (const skid of r.skids) {

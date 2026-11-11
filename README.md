@@ -20,6 +20,12 @@ Abra `Propulsao-Offline.html` em um navegador. Não precisa instalar dependênci
 ## Pilotagem e câmera
 Mapa de 21600 × 12960 unidades, com os traçados 100% mais longos que a versão de 10800 × 6480 e carros na mesma escala. A largura da faixa de corrida é preservada. O cenário estático usa resolução limitada para evitar aumentar a memória na proporção da área do mapa. Carro fixo no centro da câmera; minimapa mostra o circuito completo. A física inclui esterçamento progressivo, inércia lateral, limite de aderência em curvas, freios, grama com menor tração e colisão com o muro externo. As voltas exigem 16 setores em ordem. Os recordes desta física usam armazenamento separado da versão assistida.
 
+## Cenário e nitidez
+
+O cenário de corrida usa blocos de 1024 unidades em resolução 1,5×, carregados conforme a câmera avança, com até 12 blocos em memória e preparação antecipada na direção do carro. Uma imagem separada de 1280 pixels atende apenas o minimapa. Isso evita ampliar uma imagem reduzida do circuito inteiro. As junções usam margens sobrepostas para não mostrar linhas entre blocos.
+
+Asfalto e grama têm texturas procedurais; o entorno inclui arquibancadas com público, cercas, iluminação, estacionamento, tendas, motorhomes, veículos de apoio e árvores. Os boxes têm equipamentos, pneus, equipe e transportadores. A arte é desenhada em Canvas, acompanha os três traçados e funciona offline. `tests/scenery.cjs` verifica reutilização, limite de memória e descarte dos blocos.
+
 ## Colisões contra a IA
 Os 15 carros usam posição e velocidade físicas. Contato por carroceria orientada transfere impulso aos dois carros, com atrito e rotação em impactos fora do centro. A IA volta a pilotar após o empurrão; engavetamentos afetam os demais adversários. O muro considera o tamanho do carro. Carros em recuperação ficam temporariamente fora das colisões.
 

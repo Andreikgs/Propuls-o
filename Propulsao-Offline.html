@@ -548,6 +548,144 @@ function recoverDriver(r) {
 </script>
 <script>
 'use strict';
+// Procedural art stays aligned with the circuit and is shared by overview and detail tiles.
+const sceneryPlans = new Map(), surfaceTextures = new Map();
+function surfacePattern(g, kind, track) {
+ const key=kind+track;
+ if(!surfaceTextures.has(key)){
+  const canvas=document.createElement('canvas');canvas.width=canvas.height=128;
+  const c=canvas.getContext('2d');
+  c.fillStyle=kind==='grass'?['#52734b','#77794b','#496a50'][track]:track===2?'#989b98':'#343b40';c.fillRect(0,0,128,128);
+  let seed=37+track;const random=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296};
+  for(let i=0;i<1900;i++){c.fillStyle=i%3?'#00000012':'#ffffff16';c.fillRect(random()*128,random()*128,kind==='grass'?1:random()*1.5+.4,kind==='grass'?3:1)}
+  if(kind==='grass'){c.fillStyle='#ffffff05';c.fillRect(0,0,128,64)}
+  surfaceTextures.set(key,canvas);
+ }
+ return g.createPattern(surfaceTextures.get(key),'repeat');
+}
+function sceneryPlan(track){
+ if(sceneryPlans.has(track))return sceneryPlans.get(track);
+ const plan=[],total=trackMesh(track).total;
+ const add=(f,lane,type,index)=>{const p=position(f,lane,track),pit=pitOffset(f,track);
+  // Keep the complete decoration footprint clear of both driving corridors.
+  if(lane<0&&pit!==null&&Math.abs(lane-pit)<260)return;
+  plan.push({...p,type,index});
+ };
+ for(let i=0,n=Math.ceil(total/240);i<n;i++){
+  const f=i/n;add(f,330,'stand',i);add(f,560,'concourse',i);
+  if(i%3===0)add(f,225,'light',i);
+  add(f,900,'parking',i);
+  add(f,-390,i%4===0?'service':'camp',i);
+  add(f,-720,i%3===0?'tree':'camp',i+17);
+  if(i%2===0)add(f,-1080,'tree',i+39);
+  add(f,1250,'tree',i+8);
+ }
+ for(let y=800;y<WORLD.height-500;y+=550)for(let x=500;x<WORLD.width-500;x+=600){
+  const q=trackInfo(x,y,track),pit=pitOffset(q.fraction,track);
+  if(Math.abs(q.distance)<1450||pit!==null&&Math.abs(q.distance-pit)<340)continue;
+  plan.push({x,y,angle:0,type:(x+y)%3?'tree':'camp',index:Math.round(x+y)});
+ }
+ sceneryPlans.set(track,plan);return plan;
+}
+function drawScenery(g,track,visible){
+ for(const p of sceneryPlan(track)){
+  if(!visible(p.x,p.y,230))continue;
+  const i=p.index;g.save();g.translate(p.x,p.y);g.rotate(p.angle);
+  if(p.type==='stand'){
+   g.fillStyle='#14202555';g.fillRect(-103,-50,218,145);
+   g.fillStyle='#9a9e96';g.fillRect(-110,-60,214,132);
+   for(let row=0;row<8;row++){
+    g.fillStyle=row%2?'#424d55':'#59656d';g.fillRect(-105,-55+row*15,204,13);
+    for(let col=0;col<30;col++){
+     const aisle=col===10||col===20;if(aisle)continue;
+     g.fillStyle=['#c9d0cc','#be4c2b','#d2ba84','#283b4d'][(i+row+Math.floor(col/7))%4];g.fillRect(-102+col*6.6,-53+row*15,5,6);
+     if((col*7+row*3+i)%5){g.fillStyle=['#202a31','#e4d1ae','#f0e9d7','#d17349'][(col+row+i)%4];g.fillRect(-101+col*6.6,-52+row*15,3,4)}
+    }
+   }
+   g.fillStyle='#d4d7cd';for(const x of [-107,-38,28,98])g.fillRect(x,-60,4,132);
+   g.fillStyle='#e5e3d5';g.fillRect(-110,69,214,9);g.fillStyle='#25353c';g.fillRect(-110,64,214,5);
+  }else if(p.type==='concourse'){
+   g.fillStyle='#b2b19f';g.fillRect(-120,-85,240,170);
+   for(let j=0;j<3;j++){const x=-88+j*73;g.fillStyle='#1a252849';g.fillRect(x+5,-42,54,70);g.fillStyle=['#e1ddd0','#bd542e','#293f4c'][(i+j)%3];g.fillRect(x,-50,54,64);g.fillStyle='#ffffff30';g.fillRect(x,-50,27,64);g.fillStyle='#27343a';g.fillRect(x-3,16,60,8)}
+   for(let j=0;j<11;j++){g.fillStyle=j%3?'#273848':'#e9d5b0';g.fillRect(-102+(j*43)%214,42+(j*17)%30,3,5)}
+  }else if(p.type==='parking'){
+   g.fillStyle='#656e69';g.fillRect(-115,-110,230,220);
+   for(let row=0;row<2;row++)for(let col=0;col<9;col++){
+    const x=-105+col*24,y=row?48:-88;g.strokeStyle='#c6c9b480';g.lineWidth=1;g.strokeRect(x-2,y-3,22,44);
+    if((i+col+row)%5===0)continue;
+    g.fillStyle='#17202555';g.fillRect(x+3,y+4,16,34);g.fillStyle=['#bcbfb7','#293f4d','#823d2c','#ded7bd','#414346'][(i+row+col)%5];g.fillRect(x,y,16,34);g.fillStyle='#25383f';g.fillRect(x+2,y+7,12,8);g.fillRect(x+2,y+23,12,6);
+   }
+   g.fillStyle='#cbc9b4';g.fillRect(-90,-4,180,2);
+  }else if(p.type==='camp'||p.type==='service'){
+   g.fillStyle='#9b9d7a44';g.fillRect(-90,-75,180,150);
+   for(let j=0;j<3;j++){
+    const x=-76+j*57;g.fillStyle='#15262a40';g.fillRect(x+7,-50,44,88);g.fillStyle=p.type==='service'?['#c9cdd0','#d55d31','#315064'][(i+j)%3]:'#deded0';g.fillRect(x,-58,40,84);g.fillStyle='#ffffff35';g.fillRect(x+3,-54,34,55);g.fillStyle='#4b5e66';g.fillRect(x+5,10,30,9);g.fillStyle='#979f98';g.fillRect(x+14,-39,12,15);
+    g.fillStyle=['#c76237','#d5cfb5','#647a83'][(i+j)%3];g.beginPath();g.moveTo(x-3,42);g.lineTo(x+20,29);g.lineTo(x+44,42);g.lineTo(x+20,63);g.closePath();g.fill();
+   }
+  }else if(p.type==='tree'){
+   for(let j=0;j<7;j++){const x=((j*67+i*13)%150)-75,y=((j*43+i*7)%130)-65,r=18+(i+j)%13;
+    g.fillStyle='#182a2945';g.beginPath();g.ellipse(x+13,y+17,r+6,r*.7,0,0,TAU);g.fill();
+    for(let k=0;k<3;k++){g.fillStyle=['#263f35','#385a3d','#66804b'][k];g.beginPath();g.arc(x-k*4,y-k*4,r-k*5,0,TAU);g.fill()}
+   }
+  }else if(p.type==='light'){
+   g.strokeStyle='#14252d35';g.lineWidth=5;g.beginPath();g.moveTo(0,0);g.lineTo(30,65);g.stroke();g.fillStyle='#bec6c2';g.fillRect(-3,-3,6,12);g.fillStyle='#263b48';g.fillRect(-19,-9,38,10);g.fillStyle='#f3eed5';for(let j=0;j<5;j++)g.fillRect(-17+j*7,-8,5,6);
+  }
+  g.restore();
+ }
+}
+
+function drawPaddockDetails(g,track,visible){
+ const first=pitPosition(.10,track),last=pitPosition(.20,track);
+ for(let i=0;i<15;i++){
+  const x=first.x+40+i*(last.x-first.x-80)/14,y=first.y;if(!visible(x,y-180,340))continue;
+  g.save();g.translate(x,y);
+  // Roof ribs, skylight, pit tools, tire stacks and crew behind the working lane.
+  g.fillStyle='#ffffff20';g.fillRect(-29,-162,28,68);g.strokeStyle='#101b2840';g.lineWidth=1;
+  for(let j=0;j<7;j++){g.beginPath();g.moveTo(-29+j*9,-160);g.lineTo(-29+j*9,-92);g.stroke()}
+  g.fillStyle='#88a6ad';g.fillRect(-13,-151,26,15);g.fillStyle='#d0d8d4';g.fillRect(-14,-134,28,3);
+  g.fillStyle='#f5f3ed';g.fillRect(-32,-84,64,4);
+  for(const side of [-1,1]){g.fillStyle='#182329';for(let j=0;j<3;j++){g.beginPath();g.arc(side*43,-72-j*11,5,0,TAU);g.fill()}g.fillStyle='#d25b32';g.fillRect(side*43-6,-121,12,23);g.fillStyle='#ebd9b5';g.beginPath();g.arc(side*23,-64,3,0,TAU);g.fill();g.fillStyle=i%3?'#c9d1cd':'#ed7443';g.fillRect(side*23-3,-61,6,8)}
+  // Team transporter and awning in the paddock behind each garage.
+  g.fillStyle='#15292b40';g.fillRect(-38,-420,85,150);g.fillStyle='#e0e0d3';g.fillRect(-42,-425,77,140);g.fillStyle=['#cf5e36','#293f4d','#839387'][i%3];g.fillRect(-42,-425,77,14);g.fillStyle='#abb5b0';g.fillRect(-34,-404,61,84);g.fillStyle='#344952';g.fillRect(-34,-307,61,13);g.fillStyle='#f0ede1';g.fillRect(-23,-391,15,29);g.fillRect(5,-391,15,29);
+  g.fillStyle='#ffffff20';g.fillRect(-42,-425,39,140);
+  g.fillStyle='#20333a55';g.fillRect(50,-387,65,85);g.fillStyle=i%3?'#d4d4c1':'#d06237';g.fillRect(46,-393,65,85);g.fillStyle='#ffffff25';g.beginPath();g.moveTo(46,-393);g.lineTo(78,-350);g.lineTo(111,-393);g.fill();
+  g.restore();
+ }
+}
+const WORLD_TILE_SIZE=1024,WORLD_TILE_RESOLUTION=1.5,WORLD_TILE_LIMIT=12,WORLD_TILE_PAD=2;
+const worldTiles=new Map();let worldTileTrack=-1,worldWarmPending=false;
+function clearWorldTiles(track){if(worldTileTrack===track)return;for(const tile of worldTiles.values())tile.width=tile.height=0;worldTiles.clear();worldTileTrack=track;}
+function worldTile(track,x,y){
+ const key=x+','+y,size=WORLD_TILE_SIZE,pad=WORLD_TILE_PAD;let tile=worldTiles.get(key);
+ if(tile){worldTiles.delete(key);worldTiles.set(key,tile);return tile}
+ tile=document.createElement('canvas');tile.width=tile.height=(size+pad*2)*WORLD_TILE_RESOLUTION;
+ const c=tile.getContext('2d');c.scale(WORLD_TILE_RESOLUTION,WORLD_TILE_RESOLUTION);c.translate(pad-x*size,pad-y*size);
+ paintWorld(c,track,{x:x*size-pad,y:y*size-pad,width:size+pad*2,height:size+pad*2});worldTiles.set(key,tile);
+ if(worldTiles.size>WORLD_TILE_LIMIT){const oldest=worldTiles.keys().next().value;worldTiles.get(oldest).width=0;worldTiles.delete(oldest)}
+ return tile;
+}
+function warmWorldAhead(r){
+ if(worldWarmPending||typeof requestIdleCallback!=='function'||r.speed<1)return;
+ const track=r.track,camera=cameraFor({x:r.x+r.vx*1.7,y:r.y+r.vy*1.7}),size=WORLD_TILE_SIZE;
+ for(let y=Math.max(0,Math.floor(camera.y/size));y<=Math.min(Math.ceil(WORLD.height/size)-1,Math.floor((camera.y+720)/size));y++)
+ for(let x=Math.max(0,Math.floor(camera.x/size));x<=Math.min(Math.ceil(WORLD.width/size)-1,Math.floor((camera.x+1200)/size));x++){
+  if(worldTiles.has(x+','+y))continue;
+  worldWarmPending=true;requestIdleCallback(()=>{worldWarmPending=false;if(worldTileTrack===track)worldTile(track,x,y)},{timeout:700});return;
+ }
+}
+function drawWorldTiles(g,track,camera){
+ clearWorldTiles(track);
+ const size=WORLD_TILE_SIZE;
+ for(let y=Math.max(0,Math.floor(camera.y/size));y<=Math.min(Math.ceil(WORLD.height/size)-1,Math.floor((camera.y+720)/size));y++)
+ for(let x=Math.max(0,Math.floor(camera.x/size));x<=Math.min(Math.ceil(WORLD.width/size)-1,Math.floor((camera.x+1200)/size));x++){
+  const tile=worldTile(track,x,y),pad=WORLD_TILE_PAD;
+  g.drawImage(tile,x*size-pad,y*size-pad,size+pad*2,size+pad*2);
+ }
+}
+
+</script>
+<script>
+'use strict';
 const TAU = Math.PI * 2;
 function car(ctx, x, y, a, color, n, scale = 1, steering = 0) {
     ctx.save();
@@ -643,14 +781,12 @@ function drawHero() {
 }
 let mapCache = null, mapTrack = -1;
 function buildWorld(track) {
-    if (mapCache && mapTrack === track)
-        return mapCache;
-    const canvas = document.createElement('canvas');
-    const mapScale = Math.min(1, 7200 / WORLD.width);
-    canvas.width = Math.round(WORLD.width * mapScale);
-    canvas.height = Math.round(WORLD.height * mapScale);
-    const g = canvas.getContext('2d');
-    g.scale(mapScale, mapScale);
+ if(mapCache&&mapTrack===track)return mapCache;
+ if(mapCache)mapCache.width=mapCache.height=0;
+ const canvas=document.createElement('canvas'),scale=1280/WORLD.width;canvas.width=1280;canvas.height=Math.round(WORLD.height*scale);
+ const g=canvas.getContext('2d');g.scale(scale,scale);paintWorld(g,track);mapCache=canvas;mapTrack=track;return canvas;
+}
+function paintWorld(g,track,bounds=null){
     const path = (lane) => { g.beginPath(); for (let i = 0; i <= 900; i++) {
         const p = position(i / 900, lane, track);
         if (i)
@@ -659,32 +795,10 @@ function buildWorld(track) {
             g.moveTo(p.x, p.y);
     } g.closePath(); };
     const band = (lane, width, color) => { path(lane); g.strokeStyle = color; g.lineWidth = width; g.stroke(); };
-    // Deterministic scenery is baked once, never regenerated in the animation loop.
-    g.fillStyle = ['#bec3b5', '#c9bda8', '#aebcc0'][track];
-    g.fillRect(0, 0, WORLD.width, WORLD.height);
-    for (let y = 0; y < WORLD.height; y += 110) {
-        g.fillStyle = '#27384809';
-        g.fillRect(0, y, WORLD.width, 55);
-    }
-    for (let i = 0; i < 14000; i++) {
-        g.fillStyle = i % 2 ? '#ffffff15' : '#27384812';
-        g.fillRect((i * 431) % WORLD.width, (i * 787) % WORLD.height, 2 + i % 3, 1);
-    }
-    for (let i = 0; i < 420; i++) {
-        const x = (i * 397) % WORLD.width, y = (i * 179) % WORLD.height;
-        if (trackInfo(x, y, track).distance > 350) {
-            g.fillStyle = '#00000025';
-            g.beginPath();
-            g.ellipse(x + 12, y + 13, 19, 13, 0, 0, TAU);
-            g.fill();
-            for (let j = 0; j < 3; j++) {
-                g.fillStyle = ['#46584f', '#58695b', '#71806a'][j];
-                g.beginPath();
-                g.arc(x + j * 3, y - j * 4, 16 - j * 3 + i % 7, 0, TAU);
-                g.fill();
-            }
-        }
-    }
+    const visible=(x,y,r=0)=>!bounds||(x+r>=bounds.x&&y+r>=bounds.y&&x-r<=bounds.x+bounds.width&&y-r<=bounds.y+bounds.height);
+    g.fillStyle=surfacePattern(g,'grass',track);g.fillRect(bounds?bounds.x:0,bounds?bounds.y:0,bounds?bounds.width:WORLD.width,bounds?bounds.height:WORLD.height);
+    band(710,100,'#323e3c');band(710,2,'#d7d5b180');
+    drawScenery(g,track,visible);
     // Service verge, concrete safety walls, apron and orange/white rumble strips.
     band(0, 440, '#27384822');
     band(0, 420, '#a5aaa5');
@@ -696,7 +810,7 @@ function buildWorld(track) {
     g.setLineDash([28, 28]);
     band(0, 278, '#F04718');
     g.setLineDash([]);
-    band(0, 256, track === 2 ? '#9b9d9b' : '#303c45');
+    band(0, 256, surfacePattern(g,'asphalt',track));
     // Pit pavement uses the same material and track-normal cross section as collision geometry.
     g.beginPath();
     for (const side of [-1, 1])
@@ -709,7 +823,7 @@ function buildWorld(track) {
                 g.lineTo(p.x, p.y);
         }
     g.closePath();
-    g.fillStyle = track === 2 ? '#9b9d9b' : '#303c45';
+    g.fillStyle = surfacePattern(g,'asphalt',track);
     g.fill();
     // Asphalt aggregate and darker rubbered-in racing groove.
     g.save();
@@ -720,11 +834,6 @@ function buildWorld(track) {
     g.stroke();
     for (let lane = -110; lane <= 110; lane += 22) {
         band(lane, 1, '#00000012');
-    }
-    for (let i = 0; i < 18000; i++) {
-        const p = position((i * .61803398875) % 1, ((i * 73) % 248) - 124, track);
-        g.fillStyle = i % 3 ? '#00000016' : '#fefefe18';
-        g.fillRect(p.x, p.y, 1 + i % 2, 1);
     }
     band(-22, 31, '#00000016');
     band(-22, 15, '#0000000d');
@@ -816,6 +925,7 @@ function buildWorld(track) {
         g.textAlign = 'center';
         g.fillText(String(i + 1).padStart(2, '0'), p.x, p.y - 115);
     }
+    drawPaddockDetails(g,track,visible);
     for (const [u, label] of [[0, 'PIT IN →'], [.28, 'PIT OUT →']]) {
         const p = position(pitFraction(u, track), -242, track);
         g.save();
@@ -832,8 +942,8 @@ function buildWorld(track) {
     // Catch fencing outside the wall, with regular posts.
     band(181, 1, '#27384866');
     band(191, 1, '#27384866');
-    for (let i = 0; i < 220; i++) {
-        const p = position(i / 220, 187, track);
+    for (let i = 0; i < 1800; i++) {
+        const p = position(i / 1800, 187, track);
         g.save();
         g.translate(p.x, p.y);
         g.rotate(p.angle);
@@ -854,7 +964,7 @@ function buildWorld(track) {
         }
     g.restore();
     for (let i = 0; i < 16; i++) {
-        const p = position(-.005 * (i + 1), (i % 2 ? 1 : -1) * 52, track);
+        const p = position(-100 * (i + 1) / trackMesh(track).total, (i % 2 ? 1 : -1) * 52, track);
         g.save();
         g.translate(p.x, p.y);
         g.rotate(p.angle);
@@ -873,30 +983,9 @@ function buildWorld(track) {
     g.fillText(TRACKS[track].name.toUpperCase(), WORLD.cx, WORLD.cy - 230);
     g.font = '24px Arial';
     g.fillText('PROPULSÃO / ' + TRACKS[track].miles + ' / SENTIDO ANTI-HORÁRIO', WORLD.cx, WORLD.cy - 180);
-    // Tiered grandstands: concrete aisles, seating and roof shadows.
-    for (let i = 0; i < 48; i++) {
-        if (track !== 2 && i > 9 && i < 37)
-            continue;
-        const p = position(i / 48, 300, track);
-        g.save();
-        g.translate(p.x, p.y);
-        g.rotate(p.angle);
-        g.fillStyle = '#00000022';
-        g.fillRect(-94, -40, 188, 90);
-        g.fillStyle = '#273848';
-        g.fillRect(-100, -48, 188, 90);
-        for (let row = 0; row < 4; row++)
-            for (let col = 0; col < 15; col++) {
-                g.fillStyle = ['#c0c3cf', '#f04718', '#f5f3ed'][(col + row) % 3];
-                g.fillRect(-94 + col * 12, -42 + row * 20, 8, 9);
-            }
-        g.fillStyle = '#c0c3cf';
-        g.fillRect(81, -48, 7, 90);
-        g.restore();
-    }
     // Sponsor boards and braking-distance signs stay clear of the driving surface.
-    for (let i = 0; i < 24; i++) {
-        const p = position(i / 24, 223, track);
+    for (let i = 0; i < 180; i++) {
+        const p = position(i / 180, 223, track);
         g.save();
         g.translate(p.x, p.y);
         g.rotate(p.angle);
@@ -920,9 +1009,6 @@ function buildWorld(track) {
             g.fillText(String((i + 1) * 100), 0, 5);
             g.restore();
         }
-    mapCache = canvas;
-    mapTrack = track;
-    return canvas;
 }
 function cameraFor(r) { return { x: r.x - 600, y: r.y - 360 }; }
 function renderRace(r) {
@@ -931,7 +1017,8 @@ function renderRace(r) {
     g.fillRect(0, 0, 1200, 720);
     g.save();
     g.translate(-camera.x, -camera.y);
-    g.drawImage(map, 0, 0, WORLD.width, WORLD.height);
+    drawWorldTiles(g,r.track,camera);
+    warmWorldAhead(r);
     g.strokeStyle = '#00000088';
     g.lineWidth = 3;
     for (const skid of r.skids) {
